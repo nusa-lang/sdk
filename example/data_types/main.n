@@ -1,0 +1,40 @@
+impor cetak
+
+/*
+    Data Types:
+    bool
+    teks
+    bil
+    des
+    type*
+    type&
+    type+
+*/
+
+// Basic Data Type
+bool a = benar
+bil b = 50000
+des c = 3.14
+teks d = 'Hi!'
+cetak((teks)a + '\n')
+cetak((teks)b + '\n')
+cetak((teks)c + '\n')
+cetak(d + '\n')
+
+// Boolean
+bool e = benar
+bool f = salah
+cetak((teks)e + '\n')
+cetak((teks)f + '\n')
+
+// Signed Integers
+bil g = 500
+bil h = -4500
+cetak((teks)g + '\n')
+cetak((teks)h + '\n')
+
+// Unsigned Integers
+bil+ i = 250
+bil+ j = 5000000
+cetak((teks)i + '\n')
+cetak((teks)j + '\n')

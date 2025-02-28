@@ -1,0 +1,13 @@
+impor cetak
+
+teks x = 'Hello'
+teks y = 'World'
+
+cetak(x) 
+cetak(y + '\n')
+// Output: HelloWorld
+
+teks name = 'Aerell'
+
+// Nusnatara string interpolation.
+cetak(f'My name is {name}.\n')

@@ -1,0 +1,29 @@
+impor cetak
+/*
+    Syntax:
+    type[length] arrayname = [value...]
+*/
+
+/* 
+    Declare an Array only to inform semantic analysis that it exists elsewhere; 
+    however, if its definition is not found during execution, an error will occur.
+*/
+bil[3] nums
+
+// In Nusantara, array do not have default values, so they must be initialized manually.
+bil[5] binary = [0, 1, 2, 3, 4]
+
+cetak((teks)binary + '\n') // [0, 1, 2, 3, 5]
+
+// Access Elements of an Array
+cetak((teks)binary[1] + '\n') // 1
+cetak((teks)binary[3] + '\n') // 3
+
+// Change Elements of an Array
+binary[2] = 10 // Error because array defaul immutable.
+
+mut bil[2] binary2 = [3, 7]
+cetak((teks)binary2 + '\n') // [3, 7]
+
+binary2[1] = 9
+cetak((teks)binary2 + '\n') // [3, 9]
