@@ -1,4 +1,3 @@
-loops
 functions
 struct
 maps
