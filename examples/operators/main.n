@@ -1,0 +1,45 @@
+impor cetak
+
+// Arithmetic Operators
+cetak((teks)(1 + 1))          // 2
+cetak((teks)(5 - 2))          // 3
+cetak((teks)(2 * 5))          // 10
+cetak((teks)(6 / 2))          // 3
+cetak((teks)(5 % 2))          // 1
+cetak((teks)(1++))            // 1
+cetak((teks)(++2))            // 3
+cetak((teks)(3--))            // 3
+cetak((teks)(--2))            // 1
+
+// Assignment Operators
+cetak((teks)(result = 10))    // 10
+cetak((teks)(result += 10))   // 20
+cetak((teks)(result -= 10))   // 10
+cetak((teks)(result *= 3))    // 30
+cetak((teks)(result /= 2))    // 15
+cetak((teks)(result %= 2))    // 1
+cetak((teks)(result &= 4))    // 0
+cetak((teks)(result |= 3))    // 3
+cetak((teks)(result ^= 6))    // 5
+cetak((teks)(result >>= 8))   // 0
+cetak((teks)(result <<= 1))   // 0
+
+// Comparison Operators
+cetak((teks)(benar == benar)) // benar
+cetak((teks)(benar != benar)) // salah
+cetak((teks)(10 > 5))         // benar
+cetak((teks)(13 < 4))         // salah
+cetak((teks)(5 >= 5))         // benar
+cetak((teks)(5 <= 2))         // salah
+
+// Logical Operators
+cetak((teks)(benar && benar)) // benar
+cetak((teks)(benar || salah)) // benar
+cetak((teks)(!benar))         // salah
+
+// Bitwise Operators
+cetak((teks)(1 & 0))          // 0
+cetak((teks)(1 | 0))          // 1
+cetak((teks)(1 ^ 0))          // 1
+cetak((teks)(1 << 0))         // 1
+cetak((teks)(1 >> 0))         // 1

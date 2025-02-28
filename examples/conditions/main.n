@@ -1,0 +1,112 @@
+impor cetak
+
+/*
+    If statement
+
+    Syntax:
+    jika condition {
+        // code to be executed if condition is true
+    }
+*/
+
+jika 20 > 18 {
+    cetak('20 is greater than 18')
+}
+
+/*
+    If else Statement
+
+    Syntax:
+    jika condition {
+        // code to be executed if condition is true
+    } atau {
+        // code to be executed if condition is false
+    }
+*/
+
+bil temperature = 14
+jika temperature > 15 {
+    cetak('It is warm out there')
+} atau {
+    cetak('It is cold out there')
+}
+
+/*
+    Else if Statement
+
+    Syntax:
+    jika condition1 {
+        // code to be executed if condition1 is true
+    } atau jika condition2 {
+        // code to be executed if condition1 is false and condition2 is true
+    } atau {
+        // code to be executed if condition1 and condition2 are both false
+    }
+*/
+
+bil time = 22
+jika time < 10 {
+    cetak('Good morning.')
+} atau jika time < 20 {
+    cetak('Good day.')
+} atau {
+    cetak('Good evening.')
+}
+
+/*
+    Nested if Statement
+
+    Syntax:
+    jika condition1 {
+        // code to be executed if condition1 is true
+        jika condition2 {
+            // code to be executed if both condition1 and condition2 are true
+        }
+    }
+*/
+
+bil num = 20
+jika num >= 10 {
+    cetak('Num is more than 10.')
+    jika num > 15 {
+        cetak('Num is also more than 15.')
+    }
+} atau {
+    cetak('Num is less than 10.')
+}
+
+/*
+    Switch Statement
+
+    Syntax:
+    jika expression {
+        itu x:
+            // code block
+        itu y:
+            // code block
+        itu z:
+            ...
+        lain:
+            // code block
+    }
+*/
+
+bil day = 8
+jika day {
+    itu 1:
+        cetak('Monday')
+    itu 2:
+        cetak('Tuesday')
+    itu 3:
+        cetak('Wednesday')
+    itu 4:
+        cetak('Thursday')
+    itu 5:
+        cetak('Friday')
+    itu 6:
+        cetak('Saturday')
+    itu 7:
+        cetak('Sunday')
+    lain:
+        cetak('Not a weekday')
+}
