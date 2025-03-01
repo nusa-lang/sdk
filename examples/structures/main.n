@@ -27,9 +27,9 @@ struk Person
 
 struk Person {
   teks name
-  bil age
+  bul age
   teks job
-  bil salary
+  bul salary
 }
 
 // Access Struct Members

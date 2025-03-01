@@ -24,7 +24,7 @@ jika 20 > 18 {
     }
 */
 
-bil temperature = 14
+bul temperature = 14
 jika temperature > 15 {
     cetak('It is warm out there')
 } atau {
@@ -44,7 +44,7 @@ jika temperature > 15 {
     }
 */
 
-bil time = 22
+bul time = 22
 jika time < 10 {
     cetak('Good morning.')
 } atau jika time < 20 {
@@ -65,7 +65,7 @@ jika time < 10 {
     }
 */
 
-bil num = 20
+bul num = 20
 jika num >= 10 {
     cetak('Num is more than 10.')
     jika num > 15 {
@@ -91,7 +91,7 @@ jika num >= 10 {
     }
 */
 
-bil day = 8
+bul day = 8
 jika day {
     itu 1:
         cetak('Monday')

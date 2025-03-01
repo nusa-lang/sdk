@@ -9,7 +9,7 @@ impor cetak
 */
 
 f helloworld()
-f add(bil x, bil y) bil
+f add(bul x, bul y) bul
 
 /*
     Create a Function
@@ -45,7 +45,7 @@ familyName("Jenny") // Hello Jenny Refsnes
 familyName("Anja")  // Hello Anja Refsnes
 
 // Multiple Parameters
-f familyName(teks fname, bil age) {
+f familyName(teks fname, bul age) {
     cetak(f'Hello {(teks)age} year old {fname} Refsnes\n')
 }
 
@@ -63,14 +63,14 @@ familyName("Anja", 30)  // Hello 30 year old Anja Refsnes
     }
 */
 
-f add(bil x, bil y) bil {
+f add(bul x, bul y) bul {
     kembali x + y 
 }
 
 cetak((teks)add(1, 2)) // 3
 
 // Recursion Functions
-f testcount(bil x) bil {
+f testcount(bul x) bul {
   jika x == 11 {
     kembali 0
   }

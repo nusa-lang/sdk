@@ -9,7 +9,7 @@ impor cetak
 */
 
 {teks: teks} a = {'brand': 'Ford', 'model': 'Mustang', 'year': '1964'}
-{teks: bil} b = {'Oslo': 1, 'Bergen': 2, 'Trondheim': 3, 'Stavanger': 4}
+{teks: bul} b = {'Oslo': 1, 'Bergen': 2, 'Trondheim': 3, 'Stavanger': 4}
 
 cetak((teks)a + '\n')
 cetak((teks)b + '\n')

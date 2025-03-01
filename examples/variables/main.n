@@ -9,7 +9,7 @@ impor cetak
 */
 
 teks name
-bil age
+bul age
 
 // Assigning a value to a variable.
 name = 'Aerell'

@@ -7,12 +7,12 @@
     }
 */
 
-ulang mut bil i = 0; i < 5; ++i {
+ulang mut bul i = 0; i < 5; ++i {
     cetak((teks)i + '\n')
 }
 
 // The continue Statement
-ulang mut bil i = 0; i < 5; ++i {
+ulang mut bul i = 0; i < 5; ++i {
     if i == 3 {
         lanjut
     }
@@ -20,7 +20,7 @@ ulang mut bil i = 0; i < 5; ++i {
 }
 
 // The break Statement
-ulang mut bil i = 0; i < 5; ++i {
+ulang mut bul i = 0; i < 5; ++i {
     if i == 3 {
         henti
     }
@@ -31,8 +31,8 @@ ulang mut bil i = 0; i < 5; ++i {
 teks[2] adj = ['big', 'tasty']
 teks[3] fruits = ['apple', 'orange', 'banana']
 
-ulang mut bil i = 0; i < adj.panjang; ++i {
-    ulang mut bil j = 0; j < fruits.panjang; ++j {
+ulang mut bul i = 0; i < adj.panjang; ++i {
+    ulang mut bul j = 0; j < fruits.panjang; ++j {
         cetak(f'{adj[i]} {fruits[j]}\n')
     }
 }
@@ -68,7 +68,7 @@ ulang fruit di fruits {
     }
 */
 
-mut bil i = 0
+mut bul i = 0
 ulang i < 10 {
     cetak((teks)i)
     ++i
