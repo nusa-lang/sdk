@@ -16,10 +16,16 @@ else()
         file(GLOB_RECURSE PROJECT_HEADER_AND_SRC_FILES
             "${PROJECT}/bin/**/*.cc"     # Match .cc files in bin/ and its subdirectories
             "${PROJECT}/bin/*.cc"        # Match .cc files directly inside bin/
+            "${PROJECT}/bin/**/*.c"     # Match .c files in bin/ and its subdirectories
+            "${PROJECT}/bin/*.c"        # Match .c files directly inside bin/
             "${PROJECT}/lib/**/*.cc"     # Match .cc files in lib/ and its subdirectories
             "${PROJECT}/lib/*.cc"        # Match .cc files directly inside lib/
+            "${PROJECT}/lib/**/*.c"     # Match .c files in lib/ and its subdirectories
+            "${PROJECT}/lib/*.c"        # Match .c files directly inside lib/
             "${PROJECT}/test/**/*.cc"    # Match .cc files in test/ and its subdirectories
             "${PROJECT}/test/*.cc"       # Match .cc files directly inside test/
+            "${PROJECT}/test/**/*.c"    # Match .c files in test/ and its subdirectories
+            "${PROJECT}/test/*.c"       # Match .c files directly inside test/
             "${PROJECT}/include/**/*.h"  # Match .h files in include/ and its subdirectories
             "${PROJECT}/include/*.h"     # Match .h files directly inside include/
         )
