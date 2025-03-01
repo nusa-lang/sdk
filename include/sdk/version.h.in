@@ -1,0 +1,45 @@
+/*
+ * ----------------------------------------------------------------------------
+ * Project: Nusantara
+ * Author: Fern Aerell
+ * License: BSD 3-Clause License
+ * Copyright (c) 2025, Nusantara
+ * ----------------------------------------------------------------------------
+ */
+
+ #ifndef SDK_VERSION_H
+ #define SDK_VERSION_H
+ 
+ /**
+ # DESCRIPTION
+ 
+ MAJOR: Increasing this number indicates  
+ that there are changes that are **not backward-compatible**.  
+ For example, if a function is removed or significantly modified.  
+ 
+ MINOR: Increasing this number indicates the addition  
+ of new features that **remain backward-compatible**.  
+ For example, adding a new function without removing the old one.  
+ 
+ PATCH: Increasing this number indicates a **bug fix**  
+ that does not affect existing features.  
+ These are minor changes that fix issues without adding new features.  
+ */
+ 
+ // Version
+ #define __SDK_MAJOR_VERSION__ "@SDK_MAJOR_VERSION@"
+ #define __SDK_MINOR_VERSION__ "@SDK_MINOR_VERSION@"
+ #define __SDK_PATCH_VERSION__ "@SDK_PATCH_VERSION@"
+ 
+ // dev, alpha, beta, stable, release
+ #define __SDK_VERSION_TYPE__ "@SDK_VERSION_TYPE@"
+ 
+ // Build date and time
+ #define __SDK_BUILD_DATE__ "@SDK_BUILD_DATE@"
+ #define __SDK_BUILD_TIME__ "@SDK_BUILD_TIME@"
+ 
+ // Target build platform
+ #define __SDK_BUILD_SYSTEM_NAME__ "@SDK_BUILD_SYSTEM_NAME@"
+ #define __SDK_BUILD_SYSTEM_PROCESSOR__ "@SDK_BUILD_SYSTEM_PROCESSOR@"
+ 
+ #endif

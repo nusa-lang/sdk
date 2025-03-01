@@ -1,0 +1,3 @@
+include/sdk/version.h
+.cache
+build
