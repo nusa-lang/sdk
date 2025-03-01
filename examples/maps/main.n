@@ -1,0 +1,54 @@
+impor cetak
+
+/*
+    Create Maps
+
+    Syntax:
+    {keytype:valuetype} mapname
+    {keytype:valuetype} mapname = value
+*/
+
+{teks: teks} a = {'brand': 'Ford', 'model': 'Mustang', 'year': '1964'}
+{teks: bil} b = {'Oslo': 1, 'Bergen': 2, 'Trondheim': 3, 'Stavanger': 4}
+
+cetak((teks)a + '\n')
+cetak((teks)b + '\n')
+
+// Create an Empty Map
+{teks: teks} c
+{teks: teks} d = {}
+
+cetak((teks)c + '\n')
+cetak((teks)d + '\n')
+
+/*
+    Access Map Elements
+
+    Syntax:
+    mapname[key]
+*/
+
+cetak(a['brand'] + '\n')
+cetak((teks)b['Oslo'] + '\n')
+
+/*
+    Update and Add Map Elements
+
+    Syntax:
+    mapname[key] = value
+*/
+
+d['brand'] = 'Ford'
+d['model'] = 'Mustang'
+d['year'] = '1964'
+
+cetak((teks)d + '\n')
+
+/*
+    Remove Element from Map
+
+    Syntax:
+    mapname.hapus(key)
+*/
+
+d.hapus('brand')

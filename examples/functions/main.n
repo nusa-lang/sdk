@@ -1,0 +1,81 @@
+impor cetak
+
+/*
+    Declaring a function only to inform semantic analysis that it exists elsewhere; 
+    however, if its definition is not found during execution, an error will occur.
+
+    Syntax:
+    f functionname() type
+*/
+
+f helloworld()
+f add(bil x, bil y) bil
+
+/*
+    Create a Function
+
+    Syntax:
+    f functionname() type {
+        // code to be executed
+    }
+*/
+
+f myMessage() {
+    cetak('I just got executed!\n')
+}
+
+// Call a function
+myMessage() // I just got executed!
+
+/*
+    Function Parameters and Arguments
+
+    Syntax:
+    f functionname(type paramname) type {
+        // code to be executed
+    }
+*/
+
+f familyName(teks fname) {
+    cetak(f'Hello {fname} Refsnes\n')
+}
+
+familyName("Liam")  // Hello Liam Refsnes
+familyName("Jenny") // Hello Jenny Refsnes
+familyName("Anja")  // Hello Anja Refsnes
+
+// Multiple Parameters
+f familyName(teks fname, bil age) {
+    cetak(f'Hello {(teks)age} year old {fname} Refsnes\n')
+}
+
+familyName("Liam", 3)   // Hello 3 year old Liam Refsnes
+familyName("Jenny", 14) // Hello 14 year old Jenny Refsnes
+familyName("Anja", 30)  // Hello 30 year old Anja Refsnes
+
+/*
+    Function Returns
+
+    Syntax:
+    f functionname(type paramname, type paramname2) type {
+        // code to be executed
+        kembali output
+    }
+*/
+
+f add(bil x, bil y) bil {
+    kembali x + y 
+}
+
+cetak((teks)add(1, 2)) // 3
+
+// Recursion Functions
+f testcount(bil x) bil {
+  jika x == 11 {
+    kembali 0
+  }
+  cetak((teks)x + '\n')
+  kembali testcount(x + 1)
+}
+
+testcount(1)

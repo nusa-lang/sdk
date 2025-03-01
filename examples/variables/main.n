@@ -1,22 +1,15 @@
 impor cetak
 
 /*
+    Declare a variable
+
     Syntax:
     type variablename
     type variablename = value
 */
 
-/*
-    Declaring a variable only to inform semantic analysis that it exists elsewhere; 
-    however, if its definition is not found during execution, an error will occur.
-*/
-teks a
-bil b
-bool c
-
-// In Nusantara, variables do not have default values, so they must be initialized manually.
-teks name = ''
-bil age = 0
+teks name
+bil age
 
 // Assigning a value to a variable.
 name = 'Aerell'
@@ -24,3 +17,7 @@ age = 20
 
 cetak(name + '\n')
 cetak((teks)age + '\n')
+
+// Definition a variable
+teks name2 = 'Aerell'
+cetak(name2 + '\n')
