@@ -1,0 +1,18 @@
+{
+    "Header comment": {
+        "scope": "c,cc,cpp,h,hpp",
+        "prefix": "hc",
+        "body": [
+            "/*",
+            " * ----------------------------------------------------------------------------",
+            " * Project: Nusantara",
+            " * Author: Fern Aerell",
+            " * License: BSD 3-Clause License",
+            " * Copyright (c) 2025, Nusantara",
+            " * ----------------------------------------------------------------------------",
+            " */",
+            "",
+        ],
+        "description": "Create a header comment."
+    }
+}
