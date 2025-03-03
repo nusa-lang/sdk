@@ -1,135 +1,174 @@
+/*
+ * ----------------------------------------------------------------------------
+ * Project: Nusantara
+ * Author: Fern Aerell
+ * License: BSD 3-Clause License
+ * Copyright (c) 2025, Nusantara
+ * ----------------------------------------------------------------------------
+ */
+
 #include "nusantara/support/char_stream.h"
 #include <gtest/gtest.h>
+#include <string>
 
-TEST(CharStreamTest, PeekFunctionTest)
+TEST(CharStreamTest, DefaultConstructor)
 {
-    nusantara::CharStream charStream{"Hello World!"};
-
-    EXPECT_EQ(*charStream.peek(0), 'H');
-    EXPECT_EQ(*charStream.peek(1), 'e');
-    EXPECT_EQ(*charStream.peek(2), 'l');
-    EXPECT_EQ(*charStream.peek(3), 'l');
-    EXPECT_EQ(*charStream.peek(4), 'o');
-    EXPECT_EQ(*charStream.peek(5), ' ');
-    EXPECT_EQ(*charStream.peek(6), 'W');
-    EXPECT_EQ(*charStream.peek(7), 'o');
-    EXPECT_EQ(*charStream.peek(8), 'r');
-    EXPECT_EQ(*charStream.peek(9), 'l');
-    EXPECT_EQ(*charStream.peek(10), 'd');
-    EXPECT_EQ(*charStream.peek(11), '!');
-    EXPECT_EQ(charStream.peek(12), nullptr);
+    nusantara::CharStream stream;
+    EXPECT_EQ(stream.index(), 0);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 0);
 }
 
-TEST(CharStreamTest, NextFunctionTest)
+TEST(CharStreamTest, ConstructorWithString)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(*charStream.next(), 'e');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'o');
-    EXPECT_EQ(*charStream.next(), ' ');
-    EXPECT_EQ(*charStream.next(), 'W');
-    EXPECT_EQ(*charStream.next(), 'o');
-    EXPECT_EQ(*charStream.next(), 'r');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'd');
-    EXPECT_EQ(*charStream.next(), '!');
-    EXPECT_EQ(charStream.next(), nullptr);
+    EXPECT_EQ(stream.index(), 0);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 0);
 }
 
-TEST(CharStreamTest, PreviousFunctionTest)
+TEST(CharStreamTest, Peek)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(charStream.previous(), nullptr);
-    charStream.next();
-    EXPECT_EQ(*charStream.previous(), 'H');
+    EXPECT_EQ(*stream.peek(0), 'H');
+    EXPECT_EQ(*stream.peek(5), '\n');
+    EXPECT_EQ(stream.peek(100), nullptr); // out of range
 }
 
-TEST(CharStreamTest, CurrentFunctionTest)
+TEST(CharStreamTest, Current)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(*charStream.current(), 'H');
-    charStream.next();
-    EXPECT_EQ(*charStream.current(), 'e');
+    EXPECT_EQ(*stream.current(), 'H');
+    stream.next();
+    EXPECT_EQ(*stream.current(), 'e');
 }
 
-TEST(CharStreamTest, ResetFunctionTest)
+TEST(CharStreamTest, Next)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(*charStream.current(), 'H');
-    EXPECT_EQ(*charStream.next(), 'e');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'o');
+    EXPECT_EQ(*stream.next(), 'e');
+    EXPECT_EQ(stream.index(), 1);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 1);
 
-    charStream.reset();
+    stream.next(); // 'l'
+    stream.next(); // 'l'
+    stream.next(); // 'o'
+    stream.next(); // '\n'
+    stream.next(); // 'W'
+    EXPECT_EQ(stream.line(), 1);
+    EXPECT_EQ(stream.column(), 0);
 
-    EXPECT_EQ(*charStream.current(), 'H');
-    EXPECT_EQ(*charStream.next(), 'e');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'o');
+    EXPECT_EQ(*stream.next(), 'o');
+    EXPECT_EQ(stream.index(), 7);
 }
 
-TEST(CharStreamTest, ClearFunctionTest)
+TEST(CharStreamTest, Previous)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(*charStream.current(), 'H');
-    EXPECT_EQ(*charStream.next(), 'e');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'l');
-    EXPECT_EQ(*charStream.next(), 'o');
+    stream.next(); // 'e'
+    stream.next(); // 'l'
+    stream.next(); // 'l'
+    stream.next(); // 'o'
 
-    charStream.clear();
+    EXPECT_EQ(*stream.previous(), 'l');
+    EXPECT_EQ(stream.index(), 3);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 3);
 
-    EXPECT_EQ(charStream.next(), nullptr);
-    EXPECT_EQ(charStream.next(), nullptr);
+    EXPECT_EQ(*stream.previous(), 'l');
+    EXPECT_EQ(stream.index(), 2);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 2);
+
+    EXPECT_EQ(*stream.previous(), 'e');
+    EXPECT_EQ(stream.index(), 1);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 1);
+
+    EXPECT_EQ(*stream.previous(), 'H');
+    EXPECT_EQ(stream.index(), 0);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 0);
+
+    EXPECT_EQ(stream.previous(), nullptr); // no previous character
 }
 
-TEST(CharStreamTest, IndexFunctionTest)
+TEST(CharStreamTest, Reset)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(charStream.index(), 0);
+    stream.next(); // 'e'
+    stream.next(); // 'l'
+    stream.next(); // 'l'
 
-    charStream.next();
-    charStream.next();
+    EXPECT_EQ(stream.index(), 3);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 3);
 
-    EXPECT_EQ(charStream.index(), 2);
+    stream.reset();
+
+    EXPECT_EQ(stream.index(), 0);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 0);
 }
 
-TEST(CharStreamTest, LineFunctionTest)
+TEST(CharStreamTest, Clear)
 {
-    nusantara::CharStream charStream{"Hello\nWorld!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(charStream.line(), 0);
+    stream.clear();
 
-    charStream.next(); // e
-    charStream.next(); // l
-    charStream.next(); // l
-    charStream.next(); // o
-    charStream.next(); // \n
-    charStream.next(); // W
-
-    EXPECT_EQ(charStream.line(), 1);
+    EXPECT_EQ(stream.index(), 0);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 0);
+    EXPECT_EQ(stream.peek(0), nullptr); // characters are cleared
 }
 
-TEST(CharStreamTest, ColumnFunctionTest)
+TEST(CharStreamTest, Index)
 {
-    nusantara::CharStream charStream{"Hello World!"};
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(charStream.column(), 0);
+    EXPECT_EQ(stream.index(), 0);
+    stream.next(); // 'e'
+    EXPECT_EQ(stream.index(), 1);
+}
 
-    charStream.next();
-    charStream.next();
-    charStream.next();
-    charStream.next();
-    charStream.next();
+TEST(CharStreamTest, LineAndColumn)
+{
+    std::string chars = "Hello\nWorld";
+    nusantara::CharStream stream(chars);
 
-    EXPECT_EQ(charStream.column(), 5);
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 0);
+
+    stream.next(); // 'e'
+    EXPECT_EQ(stream.line(), 0);
+    EXPECT_EQ(stream.column(), 1);
+
+    stream.next(); // 'l'
+    stream.next(); // 'l'
+    stream.next(); // 'o'
+    stream.next(); // '\n'
+    stream.next(); // 'W'
+
+    EXPECT_EQ(stream.line(), 1);
+    EXPECT_EQ(stream.column(), 0);
+
+    stream.next(); // 'o'
+    EXPECT_EQ(stream.line(), 1);
+    EXPECT_EQ(stream.column(), 1);
 }
