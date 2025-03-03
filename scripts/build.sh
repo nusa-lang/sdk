@@ -2,6 +2,7 @@
 
 # Default build type (Debug if not specified)
 BUILD_TYPE="Debug"
+UNIT_TEST="OFF"
 
 # Function to clean and recreate the build directory
 clean_build() {
@@ -13,37 +14,53 @@ clean_build() {
 
 # Function to configure and build the project
 configure_and_build() {
-    echo "Configuring project with build type: ${BUILD_TYPE}"
-
-    # Check if Ninja is installed
-    if ! command -v ninja &> /dev/null; then
-        echo "Error: Ninja is not installed. Please install Ninja before proceeding."
-        exit 1
+    echo "Configuring project with build type: ${BUILD_TYPE} and unit test: ${UNIT_TEST}"
+    
+    # Check if Ninja is available
+    if command -v ninja &> /dev/null; then
+        GENERATOR="-G Ninja"
+    else
+        GENERATOR=""
+        echo "Warning: Ninja is not installed. Using default CMake generator, but it's recommended to use Ninja for better performance."
     fi
-
+    
     # Run CMake configuration and build
-    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+    cmake -S . -B build $GENERATOR -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DUNIT_TEST=${UNIT_TEST}
     cmake --build build
 }
 
-# Handle script arguments
-if [ "$1" == "clean" ]; then
-    shift # Remove "clean" from arguments
+# Parse script arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --clean)
+            CLEAN=true
+            ;;
+        --unit-test)
+            UNIT_TEST="ON"
+            ;;
+        --debug|--release|--relwithdebinfo|--minsizerel)
+            # Convert lowercase argument to proper CMake build type format
+            BUILD_TYPE=$(echo "$1" | sed 's/--//; s/.*/\u&/')
+            ;;
+        *)
+            echo "Invalid argument: $1"
+            echo "Usage:"
+            echo "  ./build.sh [--clean] [--unit-test] [--debug|--release|--relwithdebinfo|--minsizerel]"
+            echo "  --clean        : Remove the build folder before rebuilding"
+            echo "  --unit-test    : Enable unit tests (-DUNIT_TEST=ON)"
+            echo "  --debug        : Set CMake build type to Debug"
+            echo "  --release      : Set CMake build type to Release"
+            echo "  --relwithdebinfo : Set CMake build type to RelWithDebInfo"
+            echo "  --minsizerel   : Set CMake build type to MinSizeRel"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
-    # Check if a valid build type is provided after "clean"
-    if [[ "$1" =~ ^(Debug|Release|RelWithDebInfo|MinSizeRel)$ ]]; then
-        BUILD_TYPE="$1"
-    fi
+# Execute clean build if --clean was provided
+if [ "$CLEAN" = true ]; then
     clean_build
-elif [[ "$1" =~ ^(Debug|Release|RelWithDebInfo|MinSizeRel)$ ]]; then
-    # Set build type based on the provided argument
-    BUILD_TYPE="$1"
-    configure_and_build
 else
-    # Display usage instructions for invalid or missing arguments
-    echo "Usage:"
-    echo "  ./build.sh <CMAKE_BUILD_TYPE>         # Build with specified type (default: Debug)"
-    echo "  ./build.sh clean [CMAKE_BUILD_TYPE]   # Clean and rebuild (default: Debug)"
-    echo "Valid CMAKE_BUILD_TYPE values: Debug, Release, RelWithDebInfo, MinSizeRel"
-    exit 1
+    configure_and_build
 fi
