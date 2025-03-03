@@ -5,6 +5,5 @@ add_executable(nusantara
 
 # Link the "nusantara" executable with the specified LLVM libraries
 target_link_libraries(nusantara PRIVATE
-    ${LLVMCore} # Link with LLVM Core static library
     ${LLVMSupport} # Link with LLVM Support static library
 )
