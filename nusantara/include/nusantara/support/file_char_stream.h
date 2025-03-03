@@ -11,8 +11,6 @@
 #define NUSANTARA_SUPPORT_FILE_CHAR_STREAM_H
 
 #include "nusantara/support/char_stream.h"
-#include <cstddef>
-#include <fstream>
 #include <string>
 
 namespace nusantara {
@@ -20,16 +18,7 @@ namespace nusantara {
 class FileCharStream : public CharStream
 {
 public:
-    explicit FileCharStream(const std::string& file);
-
-    const char* peek(const size_t& index = 0) noexcept override;
-    const char* current() noexcept override;
-    const char* next() noexcept override;
-
-private:
-    std::ifstream file;
-
-    bool addCharToRchars();
+    explicit FileCharStream(const std::string& filePath);
 };
 
 } // namespace nusantara

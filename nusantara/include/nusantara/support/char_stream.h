@@ -27,10 +27,10 @@ public:
 
     explicit CharStream(std::string chars);
 
-    virtual const char* peek(const size_t& index = 0) noexcept;
+    const char* peek(const size_t& index = 0) noexcept;
     const char* previous();
-    virtual const char* current() noexcept;
-    virtual const char* next();
+    const char* current() noexcept;
+    const char* next();
 
     void reset() noexcept;
     void clear();

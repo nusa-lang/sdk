@@ -8,55 +8,16 @@
  */
 
 #include "nusantara/support/file_char_stream.h"
-#include "nusantara/support/char_stream.h"
-#include <cstddef>
-#include <stdexcept>
+#include "nusantara/support/memory_mapped_file.h"
+#include <llvm/Support/raw_ostream.h>
 #include <string>
 
 namespace nusantara {
 
-FileCharStream::FileCharStream(const std::string& file) : file(file)
+FileCharStream::FileCharStream(const std::string& filePath)
 {
-    if (!this->file.is_open())
-        throw std::runtime_error("Tidak dapat membuka file '" + file + "'.");
-}
-
-const char* FileCharStream::peek(const size_t& index) noexcept
-{
-    while (this->rchars().size() <= index)
-        if (!this->addCharToRchars())
-            return nullptr;
-
-    return CharStream::peek(index);
-}
-
-const char* FileCharStream::current() noexcept
-{
-    if (this->rchars().empty())
-        this->addCharToRchars();
-
-    return CharStream::current();
-}
-
-const char* FileCharStream::next() noexcept
-{
-    if (!this->addCharToRchars())
-        return nullptr;
-
-    return CharStream::next();
-}
-
-bool FileCharStream::addCharToRchars()
-{
-    char tchar{};
-
-    if (this->file.get(tchar))
-    {
-        this->rchars() += tchar;
-        return true;
-    }
-
-    return false;
+    llvm::raw_string_ostream strs{this->rchars()};
+    memoryMappedFileRead(filePath, strs);
 }
 
 } // namespace nusantara
