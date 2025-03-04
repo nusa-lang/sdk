@@ -1,0 +1,195 @@
+/*
+ * ----------------------------------------------------------------------------
+ * Project: Nusantara
+ * Author: Fern Aerell
+ * License: BSD 3-Clause License
+ * Copyright (c) 2025, Nusantara
+ * ----------------------------------------------------------------------------
+ */
+
+#include "nusantara/lexer/lexer.h"
+#include "nusantara/lexer/token/token.h"
+#include "nusantara/lexer/token/token_type.h"
+#include "nusantara/lexer/token/tokens.h"
+#include "nusantara/support/file/memory_mapped_file.h"
+#include <cctype>
+#include <cstdio>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace nusantara {
+
+std::vector<std::pair<TokenType, std::string>> Lexer::_rules{
+    {TokenType::INST_PRINT, "cetak"},
+};
+
+Lexer Lexer::file(std::string source)
+{
+    Lexer lexer;
+    lexer._source = std::move(source);
+    lexer._file = MemoryMappedFile::create(lexer._source);
+    lexer._size = lexer._file.value().size();
+    return lexer;
+}
+
+Lexer Lexer::input(std::string input)
+{
+    Lexer lexer;
+    lexer._input = std::move(input);
+    lexer._size = lexer._input->size();
+    return lexer;
+}
+
+Token Lexer::nextToken()
+{
+    while (this->_notEof())
+    {
+        _skipWs();
+
+        Token token;
+        for (const auto& basic : Lexer::_rules)
+            if (this->_create(token, basic.first, basic.second))
+                return token;
+
+        if (this->_createLitStr(token))
+            return token;
+
+        token.type = TokenType::UNKNOWN;
+        token.line = this->_line;
+        token.column = this->_column;
+        token.lexeme = *this->_char();
+        this->_next();
+        return token;
+    }
+
+    return {TokenType::NEOF, "", this->_line, this->_column};
+}
+
+Tokens Lexer::getTokens()
+{
+    Tokens tokens{this->_source, {}};
+
+    tokens.elements.emplace_back(this->nextToken());
+    while (tokens.elements.back().type != TokenType::NEOF)
+        tokens.elements.emplace_back(this->nextToken());
+
+    return tokens;
+}
+
+const char* Lexer::_char() const
+{
+    if (this->_eof())
+        return nullptr;
+
+    if (this->_input.has_value())
+        return &this->_input.value()[this->_index];
+
+    if (this->_file.has_value())
+        return &this->_file.value().chars()[this->_index];
+
+    return nullptr;
+}
+
+bool Lexer::_eof() const
+{
+    return this->_index >= this->_size;
+}
+
+bool Lexer::_notEof() const
+{
+    return this->_index < this->_size;
+}
+
+void Lexer::_next()
+{
+    const char* c{this->_char()};
+    if (c == nullptr)
+        return;
+
+    if (*c == '\n')
+    {
+        this->_line++;
+        this->_column = 0;
+    }
+    else
+        this->_column++;
+
+    this->_index++;
+}
+
+void Lexer::_skipWs()
+{
+    const char* c{this->_char()};
+    while (c != nullptr && std::isspace(*c) != 0)
+    {
+        this->_next();
+        c = this->_char();
+    }
+}
+
+bool Lexer::_create(Token& token, const TokenType& type, const std::string& rule)
+{
+    size_t endIndex{rule.size() == 0 ? 0 : rule.size() - 1};
+    if ((this->_index + endIndex) >= this->_size)
+        return false;
+
+    size_t tempIndex{this->_index};
+
+    token.type = type;
+    token.line = this->_line;
+    token.column = this->_column;
+    token.lexeme = "";
+
+    for (size_t i{0}; i <= endIndex; i++)
+    {
+        const char* c{this->_char()};
+
+        if (c == nullptr || *c != rule[i])
+        {
+            this->_index = tempIndex;
+            this->_line = token.line;
+            this->_column = token.column;
+            return false;
+        }
+
+        token.lexeme += *c;
+        this->_next();
+    }
+
+    return true;
+}
+
+bool Lexer::_createLitStr(Token& token)
+{
+    const char* c{this->_char()};
+    if (c == nullptr || (*c != '"' && *c != '\''))
+        return false;
+
+    char quote{*c};
+
+    token.type = TokenType::LIT_STR;
+    token.lexeme = quote;
+    token.line = this->_line;
+    token.column = this->_column;
+
+    this->_next();
+    c = this->_char();
+
+    while (c != nullptr && *c != quote)
+    {
+        token.lexeme += *c;
+        this->_next();
+        c = this->_char();
+    }
+
+    if (c != nullptr)
+    {
+        token.lexeme += *c;
+        this->_next();
+    }
+
+    return true;
+}
+
+} // namespace nusantara
