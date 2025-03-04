@@ -53,7 +53,7 @@ TEST_F(MemoryMappedFileTest, MoveConstructor)
 TEST_F(MemoryMappedFileTest, MoveAssignment)
 {
     nusantara::MemoryMappedFile mmf1 = nusantara::MemoryMappedFile::create(testFilePath);
-    nusantara::MemoryMappedFile mmf2{std::move(mmf1)};
+    nusantara::MemoryMappedFile mmf2 = std::move(mmf1);
 
     EXPECT_NE(mmf2.chars(), nullptr);
     EXPECT_EQ(mmf2.size(), 24);

@@ -24,10 +24,10 @@
 
 namespace nusantara {
 
-MemoryMappedFile::MemoryMappedFile(MemoryMappedFile&& other) noexcept
+MemoryMappedFile::MemoryMappedFile(MemoryMappedFile&& other) noexcept : _chars(other._chars), _size(other._size)
 {
-    this->_chars = other._chars;
-    this->_size = other._size;
+    other._chars = nullptr;
+    other._size = 0;
 
 #ifdef _WIN32
 
@@ -42,8 +42,6 @@ MemoryMappedFile::MemoryMappedFile(MemoryMappedFile&& other) noexcept
     other._fd = -1;
 
 #endif
-
-    other._reset();
 }
 
 MemoryMappedFile& MemoryMappedFile::operator=(MemoryMappedFile&& other) noexcept
@@ -69,7 +67,8 @@ MemoryMappedFile& MemoryMappedFile::operator=(MemoryMappedFile&& other) noexcept
 
 #endif
 
-        other._reset();
+        other._chars = nullptr;
+        other._size = 0;
     }
     return *this;
 }
