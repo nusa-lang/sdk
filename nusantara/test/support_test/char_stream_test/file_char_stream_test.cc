@@ -180,3 +180,10 @@ TEST_F(FileCharStreamTest, LineAndColumn)
     EXPECT_EQ(stream.line(), 1);
     EXPECT_EQ(stream.column(), 1);
 }
+
+TEST_F(FileCharStreamTest, GetPath)
+{
+    nusantara::FileCharStream stream(testFilePath);
+
+    EXPECT_EQ(stream.path(), testFilePath);
+}

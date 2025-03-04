@@ -20,15 +20,17 @@ namespace nusantara {
 class FileCharStream : public CharStreamBase
 {
 public:
-    explicit FileCharStream(std::string filePath);
+    explicit FileCharStream(std::string path);
 
     const char* peek(const size_t& index = 0) override;
     const char* previous() override;
     const char* current() override;
     const char* next() override;
 
+    const std::string& path();
+
 private:
-    std::string _filePath;
+    std::string _path;
     MemoryMappedFile _mmf;
 };
 

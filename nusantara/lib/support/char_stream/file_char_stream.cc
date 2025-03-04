@@ -8,13 +8,14 @@
  */
 
 #include "nusantara/support/char_stream/file_char_stream.h"
+#include "nusantara/support/file/memory_mapped_file.h"
 #include <cstddef>
 #include <string>
 #include <utility>
 
 namespace nusantara {
 
-FileCharStream::FileCharStream(std::string filePath) : _filePath(std::move(filePath)), _mmf{MemoryMappedFile::create(this->_filePath)} {}
+FileCharStream::FileCharStream(std::string path) : _path(std::move(path)), _mmf{MemoryMappedFile::create(this->_path)} {}
 
 const char* FileCharStream::peek(const size_t& index)
 {
@@ -72,6 +73,11 @@ const char* FileCharStream::next()
         this->_column++;
 
     return &this->_mmf.chars()[this->_index];
+}
+
+const std::string& FileCharStream::path()
+{
+    return this->_path;
 }
 
 } // namespace nusantara
