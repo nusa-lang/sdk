@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "nusantara/support/char_stream.h"
+#include "nusantara/support/char_stream/char_stream.h"
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -15,11 +15,9 @@
 
 namespace nusantara {
 
-CharStream::CharStream() = default;
-
 CharStream::CharStream(std::string chars) : _chars(std::move(chars)) {}
 
-const char* CharStream::peek(const size_t& index) noexcept
+const char* CharStream::peek(const size_t& index)
 {
     if (index >= this->_chars.size())
         return nullptr;
@@ -29,7 +27,7 @@ const char* CharStream::peek(const size_t& index) noexcept
 
 const char* CharStream::previous()
 {
-    if (this->_index == 0)
+    if (this->index() == 0)
         return nullptr;
 
     if (this->_chars[--this->_index] == '\n')
@@ -51,7 +49,7 @@ const char* CharStream::previous()
     return &this->_chars[this->_index];
 }
 
-const char* CharStream::current() noexcept
+const char* CharStream::current()
 {
     if (this->_index >= this->_chars.size())
         return nullptr;
@@ -61,8 +59,7 @@ const char* CharStream::current() noexcept
 
 const char* CharStream::next()
 {
-    size_t size{this->_chars.size()};
-    if (this->_index >= (size == 0 ? size : size - 1))
+    if (this->_index >= this->_chars.size())
         return nullptr;
 
     char c{this->_chars[this->_index++]};
@@ -76,39 +73,6 @@ const char* CharStream::next()
         this->_column++;
 
     return &this->_chars[this->_index];
-}
-
-void CharStream::reset() noexcept
-{
-    this->_index = 0;
-    this->_line = 0;
-    this->_column = 0;
-}
-
-void CharStream::clear()
-{
-    this->reset();
-    this->_chars.clear();
-}
-
-const size_t& CharStream::index() const noexcept
-{
-    return this->_index;
-}
-
-const size_t& CharStream::line() const noexcept
-{
-    return this->_line;
-}
-
-const size_t& CharStream::column() const noexcept
-{
-    return this->_column;
-}
-
-std::string& CharStream::rchars() noexcept
-{
-    return this->_chars;
 }
 
 } // namespace nusantara

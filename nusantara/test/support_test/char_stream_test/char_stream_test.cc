@@ -7,17 +7,9 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "nusantara/support/char_stream.h"
+#include "nusantara/support/char_stream/char_stream.h"
 #include <gtest/gtest.h>
 #include <string>
-
-TEST(CharStreamTest, DefaultConstructor)
-{
-    nusantara::CharStream stream;
-    EXPECT_EQ(stream.index(), 0);
-    EXPECT_EQ(stream.line(), 0);
-    EXPECT_EQ(stream.column(), 0);
-}
 
 TEST(CharStreamTest, ConstructorWithString)
 {
@@ -122,19 +114,6 @@ TEST(CharStreamTest, Reset)
     EXPECT_EQ(stream.index(), 0);
     EXPECT_EQ(stream.line(), 0);
     EXPECT_EQ(stream.column(), 0);
-}
-
-TEST(CharStreamTest, Clear)
-{
-    std::string chars = "Hello\nWorld";
-    nusantara::CharStream stream(chars);
-
-    stream.clear();
-
-    EXPECT_EQ(stream.index(), 0);
-    EXPECT_EQ(stream.line(), 0);
-    EXPECT_EQ(stream.column(), 0);
-    EXPECT_EQ(stream.peek(0), nullptr); // characters are cleared
 }
 
 TEST(CharStreamTest, Index)
