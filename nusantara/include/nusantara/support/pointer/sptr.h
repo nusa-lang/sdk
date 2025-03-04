@@ -56,9 +56,9 @@ public:
         return *this;
     }
 
-    SPTR& operator=(T* ref)
+    SPTR& operator=(T& other)
     {
-        this->_ptr = ref;
+        this->_ptr = &other;
         return *this;
     }
 
@@ -66,7 +66,7 @@ public:
     SPTR() = default;
 
     // Constructor
-    explicit SPTR(T& ref) : _ptr(&ref) {}
+    explicit SPTR(T& value) : _ptr(&value) {}
 
     // Destructor
     ~SPTR() = default;
