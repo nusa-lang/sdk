@@ -7,18 +7,16 @@
  * ----------------------------------------------------------------------------
  */
 
-#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
+#ifndef NUSANTARA_SUPPORT_MEMORY_MAPPED_FILE_H
+#define NUSANTARA_SUPPORT_MEMORY_MAPPED_FILE_H
 
-    #ifndef NUSANTARA_SUPPORT_MEMORY_MAPPED_FILE_H
-        #define NUSANTARA_SUPPORT_MEMORY_MAPPED_FILE_H
+#include <cstddef>
+#include <llvm/Support/raw_ostream.h>
+#include <string>
 
-        #include <cstddef>
-        #include <llvm/Support/raw_ostream.h>
-        #include <string>
-
-        #ifdef _WIN32
-            #include <windows.h>
-        #endif
+#ifdef _WIN32
+    #include <windows.h>
+#endif
 
 namespace nusantara {
 
@@ -44,18 +42,16 @@ private:
     char* _chars{nullptr};
     size_t _size{0};
 
-        #ifdef _WIN32
+#ifdef _WIN32
     HANDLE _mapping{NULL};
     HANDLE _file{INVALID_HANDLE_VALUE};
-        #elif defined(__linux__) || defined(__APPLE__)
+#else
     int _fd{-1};
-        #endif
+#endif
 
     void _reset();
 };
 
 } // namespace nusantara
-
-    #endif
 
 #endif

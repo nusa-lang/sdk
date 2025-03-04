@@ -7,22 +7,20 @@
  * ----------------------------------------------------------------------------
  */
 
-#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
+#include "nusantara/support/file/memory_mapped_file.h"
+#include <llvm/Support/raw_ostream.h>
+#include <stdexcept>
+#include <string>
 
-    #include "nusantara/support/file/memory_mapped_file.h"
-    #include <llvm/Support/raw_ostream.h>
-    #include <stdexcept>
-    #include <string>
-
-    #ifdef _WIN32
-        #include <windows.h>
-    #elif defined(__linux__) || defined(__APPLE__)
-        #include <cstddef>
-        #include <fcntl.h>
-        #include <sys/mman.h>
-        #include <sys/stat.h>
-        #include <unistd.h>
-    #endif
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <cstddef>
+    #include <fcntl.h>
+    #include <sys/mman.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+#endif
 
 namespace nusantara {
 
@@ -31,19 +29,19 @@ MemoryMappedFile::MemoryMappedFile(MemoryMappedFile&& other) noexcept
     this->_chars = other._chars;
     this->_size = other._size;
 
-    #ifdef _WIN32
+#ifdef _WIN32
 
     this->_mapping = other._mapping;
     this->_file = other._file;
     other._mapping = NULL;
     other._file = INVALID_HANDLE_VALUE;
 
-    #elif defined(__linux__) || defined(__APPLE__)
+#else
 
     this->_fd = other._fd;
     other._fd = -1;
 
-    #endif
+#endif
 
     other._reset();
 }
@@ -57,19 +55,19 @@ MemoryMappedFile& MemoryMappedFile::operator=(MemoryMappedFile&& other) noexcept
         this->_chars = other._chars;
         this->_size = other._size;
 
-    #ifdef _WIN32
+#ifdef _WIN32
 
         this->_mapping = other._mapping;
         this->_file = other._file;
         other._mapping = NULL;
         other._file = INVALID_HANDLE_VALUE;
 
-    #elif defined(__linux__) || defined(__APPLE__)
+#else
 
         this->_fd = other._fd;
         other._fd = -1;
 
-    #endif
+#endif
 
         other._reset();
     }
@@ -85,7 +83,7 @@ MemoryMappedFile MemoryMappedFile::create(const std::string& filePath)
 {
     MemoryMappedFile mmf;
 
-    #ifdef _WIN32
+#ifdef _WIN32
     mmf._file = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (mmf._file == INVALID_HANDLE_VALUE)
         throw std::runtime_error("Gagal membuka file.");
@@ -118,7 +116,7 @@ MemoryMappedFile MemoryMappedFile::create(const std::string& filePath)
 
     mmf._size = fileSize;
 
-    #elif defined(__linux__) || defined(__APPLE__)
+#else
 
     mmf._fd = open(filePath.c_str(), O_RDONLY);
     if (mmf._fd == -1)
@@ -150,7 +148,7 @@ MemoryMappedFile MemoryMappedFile::create(const std::string& filePath)
 
     mmf._size = fileSize;
 
-    #endif
+#endif
 
     return mmf;
 }
@@ -169,17 +167,17 @@ void MemoryMappedFile::_reset()
 {
     if (this->_chars != nullptr)
     {
-    #ifdef _WIN32
+#ifdef _WIN32
         UnmapViewOfFile(this->_chars);
-    #elif defined(__linux__) || defined(__APPLE__)
+#else
         munmap(this->_chars, this->_size);
-    #endif
+#endif
 
         this->_chars = nullptr;
         this->_size = 0;
     }
 
-    #ifdef _WIN32
+#ifdef _WIN32
     if (this->_mapping != NULL)
     {
         CloseHandle(this->_mapping);
@@ -191,15 +189,13 @@ void MemoryMappedFile::_reset()
         CloseHandle(this->_file);
         this->_file = INVALID_HANDLE_VALUE;
     }
-    #elif defined(__linux__) || defined(__APPLE__)
+#else
     if (this->_fd != -1)
     {
         close(this->_fd);
         this->_fd = -1;
     }
-    #endif
+#endif
 }
 
 } // namespace nusantara
-
-#endif
