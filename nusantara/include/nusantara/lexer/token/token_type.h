@@ -16,15 +16,25 @@ namespace nusantara {
 
 enum class TokenType
 {
-    // Instructions
-    INST_PRINT, // pattern: cetak
+    // Parenthesis
+    PAREN_OPEN,  // pattern: '('
+    PAREN_CLOSE, // pattern: ')'
+
+    // Data types
+    KW_DT_STR, // pattern: 'teks'
+
+    // Keywords
+    KW_EXTERN, // pattern: 'luar'
+    KW_FUNC,   // pattern: 'f'
+    KW_IMPRT,  // pattern: 'impor'
 
     // Literals
     LIT_STR, // pattern: ('\'' ~'\''* '\'' | '"' ~'"'* '"')
 
     // System
-    UNKNOWN, // unknown
-    NEOF,    // eof
+    IDENTIFIER, // pattern: [a-zA-Z_][a-zA-Z0-9_]*
+    UNKNOWN,    // unknown
+    NEOF,       // eof
 };
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const TokenType& type);

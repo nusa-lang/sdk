@@ -21,7 +21,12 @@
 namespace nusantara {
 
 std::vector<std::pair<TokenType, std::string>> Lexer::_rules{
-    {TokenType::INST_PRINT, "cetak"},
+    {TokenType::PAREN_OPEN, "("},
+    {TokenType::PAREN_CLOSE, ")"},
+    {TokenType::KW_DT_STR, "teks"},
+    {TokenType::KW_EXTERN, "luar"},
+    {TokenType::KW_FUNC, "f"},
+    {TokenType::KW_IMPRT, "impor"},
 };
 
 Lexer Lexer::file(std::string source)
@@ -45,7 +50,8 @@ Token Lexer::nextToken()
 {
     while (this->_notEof())
     {
-        _skipWs();
+        if (_skipWs() || _skipComment())
+            continue;
 
         Token token;
         for (const auto& basic : Lexer::_rules)
@@ -53,6 +59,8 @@ Token Lexer::nextToken()
                 return token;
 
         if (this->_createLitStr(token))
+            return token;
+        if (this->_createIdentifier(token))
             return token;
 
         token.type = TokenType::UNKNOWN;
@@ -118,14 +126,63 @@ void Lexer::_next()
     this->_index++;
 }
 
-void Lexer::_skipWs()
+bool Lexer::_skipWs()
 {
     const char* c{this->_char()};
+    if (c == nullptr || std::isspace(*c) == 0)
+        return false;
+
     while (c != nullptr && std::isspace(*c) != 0)
     {
         this->_next();
         c = this->_char();
     }
+
+    return true;
+}
+
+bool Lexer::_skipComment()
+{
+    const char* c = this->_char();
+    if (c == nullptr)
+        return false;
+
+    size_t tempIndex = this->_index;
+
+    // Check for single-line comment
+    if (c[0] == '/' && c[1] == '/')
+    {
+        this->_next(); // Skip the first '/'
+        while ((c = this->_char()) != nullptr && *c != '\n')
+        {
+            this->_next();
+        }
+        return true;
+    }
+
+    // Check for multi-line comment
+    if (c[0] == '/' && c[1] == '*')
+    {
+        this->_next(); // Skip the first '/'
+        this->_next(); // Skip the second '*'
+        while ((c = this->_char()) != nullptr)
+        {
+            if (*c == '*')
+            {
+                this->_next();
+                c = this->_char();
+                if (c != nullptr && *c == '/')
+                {
+                    this->_next(); // Skip '/'
+                    return true;
+                }
+            }
+            this->_next();
+        }
+    }
+
+    this->_index = tempIndex;
+    return false;
 }
 
 bool Lexer::_create(Token& token, const TokenType& type, const std::string& rule)
@@ -187,6 +244,30 @@ bool Lexer::_createLitStr(Token& token)
     {
         token.lexeme += *c;
         this->_next();
+    }
+
+    return true;
+}
+
+bool Lexer::_createIdentifier(Token& token)
+{
+    const char* c{this->_char()};
+    if (c == nullptr || (std::isalpha(*c) == 0 && *c != '_'))
+        return false;
+
+    token.type = TokenType::IDENTIFIER;
+    token.lexeme = *c;
+    token.line = this->_line;
+    token.column = this->_column;
+
+    this->_next();
+    c = this->_char();
+
+    while (c != nullptr && (std::isalnum(*c) != 0 || *c == '_'))
+    {
+        token.lexeme += *c;
+        this->_next();
+        c = this->_char();
     }
 
     return true;

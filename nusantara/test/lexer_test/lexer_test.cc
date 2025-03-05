@@ -15,11 +15,11 @@
 
 TEST(LexerTest, InputConstructor)
 {
-    auto lexer{nusantara::Lexer::input("cetak 'Hello World!'")};
+    auto lexer{nusantara::Lexer::input("cetak('Hello World!')")};
 
     nusantara::Token token{lexer.nextToken()};
     token = lexer.nextToken();
-    EXPECT_EQ(token.type, nusantara::TokenType::LIT_STR);
+    EXPECT_EQ(token.type, nusantara::TokenType::PAREN_OPEN);
 }
 
 TEST(LexerTest, FileConstructor)
@@ -27,7 +27,7 @@ TEST(LexerTest, FileConstructor)
     auto lexer{nusantara::Lexer::file("examples/helloworld/main.n")};
 
     nusantara::Token token{lexer.nextToken()};
-    EXPECT_EQ(token.type, nusantara::TokenType::INST_PRINT);
+    EXPECT_EQ(token.type, nusantara::TokenType::KW_IMPRT);
 }
 
 TEST(LexerTest, NextToken)
@@ -35,11 +35,11 @@ TEST(LexerTest, NextToken)
     auto lexer{nusantara::Lexer::file("examples/helloworld/main.n")};
 
     nusantara::Token token{lexer.nextToken()};
-    EXPECT_EQ(token.type, nusantara::TokenType::INST_PRINT);
+    EXPECT_EQ(token.type, nusantara::TokenType::KW_IMPRT);
     token = lexer.nextToken();
-    EXPECT_EQ(token.type, nusantara::TokenType::LIT_STR);
+    EXPECT_EQ(token.type, nusantara::TokenType::IDENTIFIER);
     token = lexer.nextToken();
-    EXPECT_EQ(token.type, nusantara::TokenType::NEOF);
+    EXPECT_EQ(token.type, nusantara::TokenType::IDENTIFIER);
 }
 
 TEST(LexerTest, GetTokens)
@@ -49,10 +49,10 @@ TEST(LexerTest, GetTokens)
     nusantara::Tokens tokens{lexer.getTokens()};
 
     EXPECT_EQ(tokens.source, "examples/helloworld/main.n");
-    EXPECT_EQ(tokens.elements.size(), 3);
-    EXPECT_EQ(tokens.elements[0].type, nusantara::TokenType::INST_PRINT);
-    EXPECT_EQ(tokens.elements[1].type, nusantara::TokenType::LIT_STR);
-    EXPECT_EQ(tokens.elements[2].type, nusantara::TokenType::NEOF);
+    EXPECT_EQ(tokens.elements.size(), 7);
+    EXPECT_EQ(tokens.elements[0].type, nusantara::TokenType::KW_IMPRT);
+    EXPECT_EQ(tokens.elements[1].type, nusantara::TokenType::IDENTIFIER);
+    EXPECT_EQ(tokens.elements[2].type, nusantara::TokenType::IDENTIFIER);
 }
 
 TEST(LexerTest, FileNotFound)

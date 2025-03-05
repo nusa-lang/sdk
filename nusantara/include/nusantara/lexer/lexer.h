@@ -55,11 +55,15 @@ private:
 
     void _next();
 
-    void _skipWs();
+    bool _skipWs();
+
+    bool _skipComment();
 
     bool _create(Token& token, const TokenType& type, const std::string& rule);
 
     bool _createLitStr(Token& token);
+
+    bool _createIdentifier(Token& token);
 };
 
 } // namespace nusantara
