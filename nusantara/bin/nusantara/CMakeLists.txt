@@ -6,4 +6,5 @@ add_executable(nusantara
 # Link the "nusantara" executable with the specified LLVM libraries
 target_link_libraries(nusantara PRIVATE
     ${LLVMSupport} # Link with LLVM Support static library
+    nusantaraLexer # Link with Nusantara lexer static library
 )
