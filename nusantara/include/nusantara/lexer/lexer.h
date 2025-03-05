@@ -25,12 +25,12 @@ namespace nusantara {
 class Lexer
 {
 public:
-    static Lexer file(std::string source);
+    static Lexer file(const std::string& source);
     static Lexer input(std::string input);
 
     Token nextToken();
 
-    Tokens getTokens();
+    std::vector<Tokens> getVecTokens();
 
 private:
     Lexer() = default;

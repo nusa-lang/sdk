@@ -1,6 +1,13 @@
+/*
+ * ----------------------------------------------------------------------------
+ * Project: Nusantara
+ * Author: Fern Aerell
+ * License: BSD 3-Clause License
+ * Copyright (c) 2025, Nusantara
+ * ----------------------------------------------------------------------------
+ */
+
 #include "nusantara/lexer/lexer.h"
-#include "nusantara/lexer/token/token.h"
-#include "nusantara/lexer/token/token_type.h"
 #include <exception>
 #include <llvm/Support/raw_ostream.h>
 
@@ -13,14 +20,8 @@ int main(int argc, char* argv[])
 
         auto lexer{nusantara::Lexer::file(argv[1])};
 
-        nusantara::Token token{lexer.nextToken()};
-        while (token.type != nusantara::TokenType::NEOF)
-        {
-            llvm::outs() << token << "\n";
-            token = lexer.nextToken();
-        }
-
-        llvm::outs() << token << "\n";
+        for (const auto& tokens : lexer.getVecTokens())
+            llvm::outs() << tokens << "\n";
 
         return 0;
     }

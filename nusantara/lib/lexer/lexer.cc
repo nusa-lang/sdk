@@ -14,7 +14,10 @@
 #include "nusantara/support/file/memory_mapped_file.h"
 #include <cctype>
 #include <cstdio>
+#include <filesystem>
+#include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -29,10 +32,10 @@ std::vector<std::pair<TokenType, std::string>> Lexer::_rules{
     {TokenType::KW_IMPRT, "impor"},
 };
 
-Lexer Lexer::file(std::string source)
+Lexer Lexer::file(const std::string& source)
 {
     Lexer lexer;
-    lexer._source = std::move(source);
+    lexer._source = std::filesystem::weakly_canonical(source);
     lexer._file = MemoryMappedFile::create(lexer._source);
     lexer._size = lexer._file.value().size();
     return lexer;
@@ -74,15 +77,58 @@ Token Lexer::nextToken()
     return {TokenType::NEOF, "", this->_line, this->_column};
 }
 
-Tokens Lexer::getTokens()
+std::vector<Tokens> Lexer::getVecTokens()
 {
+    std::unordered_set<std::string> importedSources;
+
+    std::vector<Tokens> vecToken;
+    vecToken.reserve(10);
+
     Tokens tokens{this->_source, {}};
+    auto& elements{tokens.elements};
+    elements.reserve(100);
 
-    tokens.elements.emplace_back(this->nextToken());
-    while (tokens.elements.back().type != TokenType::NEOF)
-        tokens.elements.emplace_back(this->nextToken());
+    elements.emplace_back(this->nextToken());
+    auto* element{&elements.back()};
 
-    return tokens;
+    importedSources.insert(this->_source);
+
+    while (element != nullptr && element->type == TokenType::KW_IMPRT)
+    {
+        elements.emplace_back(this->nextToken());
+        element = &elements.back();
+
+        if (element->type != TokenType::LIT_STR)
+            throw std::runtime_error("Hanya dapat meimpor teks.");
+
+        std::string source{element->lexeme.substr(1, element->lexeme.size() - 2)};
+
+        if (!importedSources.contains(source))
+        {
+            importedSources.insert(source);
+
+            auto lexer{Lexer::file(source)};
+
+            for (auto& importedTokens : lexer.getVecTokens())
+                vecToken.emplace_back(std::move(importedTokens));
+        }
+
+        elements.emplace_back(this->nextToken());
+        element = &elements.back();
+    }
+
+    while (element != nullptr && element->type != TokenType::NEOF)
+    {
+        if (element->type == TokenType::KW_IMPRT)
+            throw std::runtime_error("Impor hanya dapat dilakukan di bagian atas.");
+
+        elements.emplace_back(this->nextToken());
+        element = &elements.back();
+    }
+
+    vecToken.emplace_back(std::move(tokens));
+
+    return vecToken;
 }
 
 const char* Lexer::_char() const
