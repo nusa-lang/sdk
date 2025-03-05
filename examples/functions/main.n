@@ -1,4 +1,4 @@
-impor cetak
+impor 'cetak.n'
 
 /*
     Declaring a function only to inform semantic analysis that it exists elsewhere; 

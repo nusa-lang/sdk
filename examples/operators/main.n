@@ -1,4 +1,4 @@
-impor cetak
+impor 'cetak.n'
 
 // Arithmetic Operators
 cetak((teks)(1 + 1))          // 2

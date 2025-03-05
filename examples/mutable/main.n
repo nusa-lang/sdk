@@ -1,4 +1,4 @@
-impor cetak
+impor 'cetak.n'
 // How to create a mutable variable in Nusantara: add the mut keyword.
 mut des PI = 3.14
 cetak((teks)PI + '\n') // 3.14

@@ -1,4 +1,4 @@
-impor cetak
+impor 'cetak.n'
 
 /*
     Data Types:
