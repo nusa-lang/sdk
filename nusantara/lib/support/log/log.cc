@@ -98,7 +98,11 @@ void Log::report()
     Log::printSaved();
     Log::printCount();
 
-    if (Log::hasError())
+    bool hasError{Log::hasError()};
+
+    Log::reset();
+
+    if (hasError)
         throw std::runtime_error("");
 }
 
@@ -153,10 +157,10 @@ std::string Log::create(const LogType& type, const std::string& source, const si
             }
         }
         else
-            output << "Berkas tidak ada atau kosong.";
+            output << "Berkas tidak ada.";
     }
     else
-        output << "Nama berkas kosong.";
+        output << "Lokasi berkas kosong.";
 
     output << "\n" << std::string(arrowSpace, ' ') << std::string(size > 0 ? size : 1, '^') << "\n" << message << "\n\n";
 

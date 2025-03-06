@@ -45,9 +45,9 @@ protected:
 
 TEST_F(LexerTest, Input)
 {
-    auto lexer{nusantara::Lexer::input(this->input1)};
+    nusantara::Lexer lexer;
 
-    std::vector<nusantara::Tokens> tokens{lexer.loadTokens()};
+    std::vector<nusantara::Tokens> tokens{lexer.input(this->input1)};
 
     EXPECT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0].elements[1].type, nusantara::TokenType::KW_FUNC);
@@ -55,9 +55,9 @@ TEST_F(LexerTest, Input)
 
 TEST_F(LexerTest, File)
 {
-    auto lexer{nusantara::Lexer::file(this->file1)};
+    nusantara::Lexer lexer;
 
-    std::vector<nusantara::Tokens> tokens{lexer.loadTokens()};
+    std::vector<nusantara::Tokens> tokens{lexer.file(this->file1)};
     EXPECT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0].source, std::filesystem::weakly_canonical(this->file1));
     EXPECT_EQ(tokens[0].elements[0].type, nusantara::TokenType::KW_EXTERN);
@@ -65,9 +65,9 @@ TEST_F(LexerTest, File)
 
 TEST_F(LexerTest, LoadTokens)
 {
-    auto lexer{nusantara::Lexer::file(this->file0)};
+    nusantara::Lexer lexer;
 
-    std::vector<nusantara::Tokens> tokens{lexer.loadTokens()};
+    std::vector<nusantara::Tokens> tokens{lexer.file(this->file0)};
 
     EXPECT_EQ(tokens.size(), 2);
     EXPECT_EQ(tokens[0].source, std::filesystem::weakly_canonical(this->file1));
@@ -81,5 +81,7 @@ TEST_F(LexerTest, LoadTokens)
 
 TEST_F(LexerTest, FileNotFound)
 {
-    EXPECT_ANY_THROW(nusantara::Lexer::file(this->fileNotFound));
+    nusantara::Lexer lexer;
+
+    EXPECT_ANY_THROW(lexer.file(this->fileNotFound));
 }

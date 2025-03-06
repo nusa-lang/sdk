@@ -13,7 +13,6 @@
 #include "nusantara/support/log/log_type.h"
 #include <array>
 #include <cstddef>
-#include <iosfwd>
 #include <mutex>
 #include <string>
 #include <unordered_map>

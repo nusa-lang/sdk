@@ -8,7 +8,6 @@
  */
 
 #include "nusantara/support/file/memory_mapped_file.h"
-#include <llvm/Support/raw_ostream.h>
 #include <stdexcept>
 #include <string>
 

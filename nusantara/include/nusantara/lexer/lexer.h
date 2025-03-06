@@ -17,6 +17,8 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -25,47 +27,52 @@ namespace nusantara {
 class Lexer
 {
 public:
-    static Lexer file(const std::string& source);
-    static Lexer input(std::string input);
-
-    std::vector<Tokens> loadTokens();
+    Lexer() = default;
+    std::vector<Tokens> file(std::string source);
+    std::vector<Tokens> input(std::string input);
 
 private:
-    Lexer() = default;
+    struct Data
+    {
+        std::string source{"unknown"};
 
-    static std::vector<std::pair<TokenType, std::string>> _rules;
+        size_t size{0};
+        size_t index{0};
+        size_t line{0};
+        size_t column{0};
 
-    std::string _source{"unknown"};
-
-    std::optional<std::string> _input{std::nullopt};
-    std::optional<MemoryMappedFile> _file{std::nullopt};
-    size_t _size{0};
-
-    size_t _index{0};
-
-    size_t _line{0};
-    size_t _column{0};
+        std::optional<std::string> input{std::nullopt};
+        std::optional<MemoryMappedFile> file{std::nullopt};
+    };
 
     bool _report{true};
 
-    Token nextToken();
+    std::unordered_set<std::string> _files;
 
-    [[nodiscard]] const char* _char() const;
+    static std::vector<std::pair<TokenType, std::string>> _rules;
 
-    [[nodiscard]] bool _eof() const;
-    [[nodiscard]] bool _notEof() const;
+    static Data _createData(std::string source, const bool& file);
 
-    void _next();
+    static Token _nextToken(Data& data);
 
-    bool _skipWs();
+    [[nodiscard]] static const char* _char(Data& data);
 
-    bool _skipComment();
+    [[nodiscard]] static bool _eof(Data& data);
+    [[nodiscard]] static bool _notEof(Data& data);
 
-    bool _create(Token& token, const TokenType& type, const std::string& rule);
+    static void _next(Data& data);
 
-    bool _createLitStr(Token& token);
+    static bool _skipWs(Data& data);
 
-    bool _createIdentifier(Token& token);
+    static bool _skipComment(Data& data);
+
+    static bool _create(Data& data, Token& token, const TokenType& type, std::string_view rule);
+
+    static bool _createLitStr(Data& data, Token& token);
+
+    static bool _createIdentifier(Data& data, Token& token);
+
+    std::vector<Tokens> _loadTokens(Data data);
 };
 
 } // namespace nusantara
