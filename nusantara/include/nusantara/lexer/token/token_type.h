@@ -24,9 +24,9 @@ enum class TokenType
     KW_DT_STR, // pattern: 'teks'
 
     // Keywords
-    KW_EXTERN, // pattern: 'luar'
-    KW_FUNC,   // pattern: 'f'
-    KW_IMPRT,  // pattern: 'impor'
+    KW_EXTERN,  // pattern: 'luar'
+    KW_FUNC,    // pattern: 'f'
+    KW_INCLUDE, // pattern: 'muat'
 
     // Literals
     LIT_STR, // pattern: ('\'' ~'\''* '\'' | '"' ~'"'* '"')

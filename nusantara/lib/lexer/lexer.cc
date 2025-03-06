@@ -12,10 +12,11 @@
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/support/file/memory_mapped_file.h"
+#include "nusantara/support/log/log.h"
 #include <cctype>
 #include <cstdio>
+#include <exception>
 #include <filesystem>
-#include <stdexcept>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -29,7 +30,7 @@ std::vector<std::pair<TokenType, std::string>> Lexer::_rules{
     {TokenType::KW_DT_STR, "teks"},
     {TokenType::KW_EXTERN, "luar"},
     {TokenType::KW_FUNC, "f"},
-    {TokenType::KW_IMPRT, "impor"},
+    {TokenType::KW_INCLUDE, "muat"},
 };
 
 Lexer Lexer::file(const std::string& source)
@@ -70,6 +71,7 @@ Token Lexer::nextToken()
         token.line = this->_line;
         token.column = this->_column;
         token.lexeme = *this->_char();
+        Log::saveError(this->_source, token.line, token.column, token.lexeme.size(), "[L] Tidak dikenal.");
         this->_next();
         return token;
     }
@@ -77,40 +79,53 @@ Token Lexer::nextToken()
     return {TokenType::NEOF, "", this->_line, this->_column};
 }
 
-std::vector<Tokens> Lexer::getVecTokens()
+std::vector<Tokens> Lexer::loadTokens()
 {
     std::unordered_set<std::string> importedSources;
 
     std::vector<Tokens> vecToken;
-    vecToken.reserve(10);
 
     Tokens tokens{this->_source, {}};
     auto& elements{tokens.elements};
-    elements.reserve(100);
 
     elements.emplace_back(this->nextToken());
     auto* element{&elements.back()};
 
     importedSources.insert(this->_source);
 
-    while (element != nullptr && element->type == TokenType::KW_IMPRT)
+    while (element != nullptr && element->type == TokenType::KW_INCLUDE)
     {
         elements.emplace_back(this->nextToken());
         element = &elements.back();
 
         if (element->type != TokenType::LIT_STR)
-            throw std::runtime_error("Hanya dapat meimpor teks.");
+        {
+            Log::saveError(this->_source, element->line, element->column, element->lexeme.size(), "[L] Tidak bisa dimuat.");
 
-        std::string source{element->lexeme.substr(1, element->lexeme.size() - 2)};
+            elements.emplace_back(this->nextToken());
+            element = &elements.back();
+
+            continue;
+        }
+
+        std::string source{std::filesystem::weakly_canonical(element->lexeme.substr(1, element->lexeme.size() - 2))};
 
         if (!importedSources.contains(source))
         {
-            importedSources.insert(source);
+            try
+            {
+                auto lexer{Lexer::file(source)};
+                lexer._report = false;
 
-            auto lexer{Lexer::file(source)};
+                for (auto& importedTokens : lexer.loadTokens())
+                    vecToken.emplace_back(std::move(importedTokens));
 
-            for (auto& importedTokens : lexer.getVecTokens())
-                vecToken.emplace_back(std::move(importedTokens));
+                importedSources.insert(source);
+            }
+            catch (const std::exception& error)
+            {
+                Log::saveError(this->_source, element->line, element->column, element->lexeme.size(), "[L] " + (std::string)error.what());
+            }
         }
 
         elements.emplace_back(this->nextToken());
@@ -119,14 +134,17 @@ std::vector<Tokens> Lexer::getVecTokens()
 
     while (element != nullptr && element->type != TokenType::NEOF)
     {
-        if (element->type == TokenType::KW_IMPRT)
-            throw std::runtime_error("Impor hanya dapat dilakukan di bagian atas.");
+        if (element->type == TokenType::KW_INCLUDE)
+            Log::saveError(this->_source, element->line, element->column, element->lexeme.size(), "[L] Tidak dapat memuat file di area ini.");
 
         elements.emplace_back(this->nextToken());
         element = &elements.back();
     }
 
     vecToken.emplace_back(std::move(tokens));
+
+    if (this->_report)
+        Log::report();
 
     return vecToken;
 }

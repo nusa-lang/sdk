@@ -28,9 +28,7 @@ public:
     static Lexer file(const std::string& source);
     static Lexer input(std::string input);
 
-    Token nextToken();
-
-    std::vector<Tokens> getVecTokens();
+    std::vector<Tokens> loadTokens();
 
 private:
     Lexer() = default;
@@ -47,6 +45,10 @@ private:
 
     size_t _line{0};
     size_t _column{0};
+
+    bool _report{true};
+
+    Token nextToken();
 
     [[nodiscard]] const char* _char() const;
 

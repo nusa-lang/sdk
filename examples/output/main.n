@@ -1,4 +1,4 @@
-impor 'cetak.n'
+muat 'cetak.n'
 
 teks x = 'Hello'
 teks y = 'World'

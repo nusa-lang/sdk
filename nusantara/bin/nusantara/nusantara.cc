@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 
         auto lexer{nusantara::Lexer::file(argv[1])};
 
-        for (const auto& tokens : lexer.getVecTokens())
+        for (const auto& tokens : lexer.loadTokens())
             llvm::outs() << tokens << "\n";
 
         return 0;
