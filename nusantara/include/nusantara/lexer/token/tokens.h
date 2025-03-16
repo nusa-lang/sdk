@@ -7,19 +7,19 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_LEXER_TOKENS_H
-#define NUSANTARA_LEXER_TOKENS_H
+#ifndef NUSANTARA_LEXER_TOKEN_TOKENS_H
+#define NUSANTARA_LEXER_TOKEN_TOKENS_H
 
 #include "nusantara/lexer/token/token.h"
+#include "nusantara/support/input_stream.h"
 #include <llvm/Support/raw_ostream.h>
-#include <string>
 #include <vector>
 
 namespace nusantara {
 
 struct Tokens
 {
-    std::string source;
+    InputStream* inputStream{nullptr};
     std::vector<Token> elements;
 };
 

@@ -8,20 +8,38 @@
  */
 
 #include "nusantara/lexer/token/tokens.h"
-#include <cstddef>
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
+#include <string_view>
 
 namespace nusantara {
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Tokens& tokens)
 {
-    const size_t& size{tokens.elements.size()};
-    const size_t& sizeFrom0{size - 1};
-    for (size_t i{0}; i < size; i++)
+    std::string_view prefix = tokens.inputStream != nullptr && tokens.inputStream->file() ? tokens.inputStream->input() : std::string_view{};
+    bool hasPrefix = !prefix.empty();
+
+    auto it = tokens.elements.begin();
+    auto end = tokens.elements.end();
+
+    if (it != end)
     {
-        os << tokens.source << ":" << tokens.elements[i];
-        if (i < sizeFrom0)
-            os << '\n';
+        if (auto* vecOS = llvm::dyn_cast<llvm::raw_svector_ostream>(&os))
+            vecOS->reserveExtraSpace(tokens.elements.size() * 10);
+
+        os << prefix;
+        if (hasPrefix)
+            os.write(":", 1);
+        os << *it;
+
+        while (++it != end)
+        {
+            os.write("\n", 1);
+            os << prefix;
+            if (hasPrefix)
+                os.write(":", 1);
+            os << *it;
+        }
     }
 
     return os;

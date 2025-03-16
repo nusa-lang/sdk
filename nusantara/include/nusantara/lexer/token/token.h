@@ -7,8 +7,8 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_LEXER_TOKEN_H
-#define NUSANTARA_LEXER_TOKEN_H
+#ifndef NUSANTARA_LEXER_TOKEN_TOKEN_H
+#define NUSANTARA_LEXER_TOKEN_TOKEN_H
 
 #include "nusantara/lexer/token/token_type.h"
 #include <cstddef>

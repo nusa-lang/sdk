@@ -7,19 +7,13 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_LEXER_H
-#define NUSANTARA_LEXER_H
+#ifndef NUSANTARA_LEXER_LEXER_H
+#define NUSANTARA_LEXER_LEXER_H
 
 #include "nusantara/lexer/token/token.h"
-#include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
-#include "nusantara/support/file/memory_mapped_file.h"
-#include <cstddef>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <unordered_set>
-#include <utility>
+#include "nusantara/module/module_manager.h"
+#include "nusantara/support/input_stream.h"
 #include <vector>
 
 namespace nusantara {
@@ -27,52 +21,25 @@ namespace nusantara {
 class Lexer
 {
 public:
-    Lexer() = default;
-    std::vector<Tokens> file(std::string source);
-    std::vector<Tokens> input(std::string input);
+    Lexer();
+
+    std::vector<Tokens> tokenization(ModuleManager& moduleManager);
 
 private:
-    struct Data
-    {
-        std::string source{"unknown"};
+    ModuleManager* _moduleManager{nullptr};
+    InputStream* _inputStream{nullptr};
 
-        size_t size{0};
-        size_t index{0};
-        size_t line{0};
-        size_t column{0};
+    Tokens _input(InputStream& inputStream);
 
-        std::optional<std::string> input{std::nullopt};
-        std::optional<MemoryMappedFile> file{std::nullopt};
-    };
+    Token _nextToken();
 
-    bool _report{true};
+    bool _skipWs();
+    bool _skipComment();
 
-    std::unordered_set<std::string> _files;
-
-    static std::vector<std::pair<TokenType, std::string>> _rules;
-
-    static Data _createData(std::string source, const bool& file);
-
-    static Token _nextToken(Data& data);
-
-    [[nodiscard]] static const char* _char(Data& data);
-
-    [[nodiscard]] static bool _eof(Data& data);
-    [[nodiscard]] static bool _notEof(Data& data);
-
-    static void _next(Data& data);
-
-    static bool _skipWs(Data& data);
-
-    static bool _skipComment(Data& data);
-
-    static bool _create(Data& data, Token& token, const TokenType& type, std::string_view rule);
-
-    static bool _createLitStr(Data& data, Token& token);
-
-    static bool _createIdentifier(Data& data, Token& token);
-
-    std::vector<Tokens> _loadTokens(Data data);
+    bool _makeToken(Token& token);
+    bool _makeTokenLitStr(Token& token);
+    bool _makeTokenLitNum(Token& token);
+    bool _makeTokenId(Token& token);
 };
 
 } // namespace nusantara

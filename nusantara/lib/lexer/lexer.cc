@@ -11,334 +11,342 @@
 #include "nusantara/lexer/token/token.h"
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
-#include "nusantara/support/file/memory_mapped_file.h"
-#include "nusantara/support/log/log.h"
+#include "nusantara/module/module_manager.h"
+#include "nusantara/support/input_stream.h"
+#include <array>
 #include <cctype>
-#include <cstdio>
-#include <exception>
-#include <filesystem>
-#include <optional>
+#include <cstddef>
+#include <cstring>
+#include <llvm/Support/raw_ostream.h>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace nusantara {
 
-std::vector<std::pair<TokenType, std::string>> Lexer::_rules{
-    {TokenType::PAREN_OPEN, "("},
-    {TokenType::PAREN_CLOSE, ")"},
-    {TokenType::KW_DT_STR, "teks"},
-    {TokenType::KW_EXTERN, "luar"},
-    {TokenType::KW_FUNC, "f"},
-    {TokenType::KW_INCLUDE, "muat"},
-};
+Lexer::Lexer() = default;
 
-std::vector<Tokens> Lexer::file(std::string source)
+std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager)
 {
-    source = std::filesystem::weakly_canonical(source);
+    this->_moduleManager = &moduleManager;
 
-    if (this->_files.contains(source))
-        return {};
-
-    return this->_loadTokens(Lexer::_createData(*this->_files.emplace(std::move(source)).first, true));
-}
-
-std::vector<Tokens> Lexer::input(std::string input)
-{
-    return this->_loadTokens(Lexer::_createData(std::move(input), false));
-}
-
-Lexer::Data Lexer::_createData(std::string source, const bool& file)
-{
-    Data data;
-
-    if (file)
-    {
-        data.source = std::move(source);
-        data.file = MemoryMappedFile::create(data.source);
-        data.size = data.file.value().size();
-    }
-    else
-    {
-        data.size = source.size();
-        data.input = std::move(source);
-    }
-
-    return data;
-}
-
-Token Lexer::_nextToken(Data& data)
-{
-    while (Lexer::_notEof(data))
-    {
-        if (_skipWs(data) || _skipComment(data))
-            continue;
-
-        Token token;
-        for (const auto& basic : Lexer::_rules)
-            if (Lexer::_create(data, token, basic.first, basic.second))
-                return token;
-
-        if (Lexer::_createLitStr(data, token))
-            return token;
-        if (Lexer::_createIdentifier(data, token))
-            return token;
-
-        token.type = TokenType::UNKNOWN;
-        token.line = data.line;
-        token.column = data.column;
-        token.lexeme = *Lexer::_char(data);
-        Log::saveError(data.source, token.line, token.column, token.lexeme.size(), "[L] Tidak dikenal.");
-        Lexer::_next(data);
-        return token;
-    }
-
-    return {TokenType::NEOF, "", data.line, data.column};
-}
-
-const char* Lexer::_char(Data& data)
-{
-    return Lexer::_eof(data) ? nullptr : data.input ? &data.input.value()[data.index] : data.file ? &data.file.value().chars()[data.index] : nullptr;
-}
-
-bool Lexer::_eof(Data& data)
-{
-    return data.index >= data.size;
-}
-
-bool Lexer::_notEof(Data& data)
-{
-    return data.index < data.size;
-}
-
-void Lexer::_next(Data& data)
-{
-    const char* c{Lexer::_char(data)};
-    if (c == nullptr)
-        return;
-
-    if (*c == '\n')
-    {
-        data.line++;
-        data.column = 0;
-    }
-    else
-        data.column++;
-
-    data.index++;
-}
-
-bool Lexer::_skipWs(Data& data)
-{
-    const char* c{Lexer::_char(data)};
-    if (c == nullptr || std::isspace(*c) == 0)
-        return false;
-
-    while (c != nullptr && std::isspace(*c) != 0)
-    {
-        Lexer::_next(data);
-        c = Lexer::_char(data);
-    }
-
-    return true;
-}
-
-bool Lexer::_skipComment(Data& data)
-{
-    const char* c = Lexer::_char(data);
-    if (c == nullptr)
-        return false;
-
-    size_t tempIndex = data.index;
-
-    // Check for single-line comment
-    if (c[0] == '/' && c[1] == '/')
-    {
-        Lexer::_next(data); // Skip the first '/'
-        while ((c = Lexer::_char(data)) != nullptr && *c != '\n')
-        {
-            Lexer::_next(data);
-        }
-        return true;
-    }
-
-    // Check for multi-line comment
-    if (c[0] == '/' && c[1] == '*')
-    {
-        Lexer::_next(data); // Skip the first '/'
-        Lexer::_next(data); // Skip the second '*'
-        while ((c = Lexer::_char(data)) != nullptr)
-        {
-            if (*c == '*')
-            {
-                Lexer::_next(data);
-                c = Lexer::_char(data);
-                if (c != nullptr && *c == '/')
-                {
-                    Lexer::_next(data); // Skip '/'
-                    return true;
-                }
-            }
-            Lexer::_next(data);
-        }
-    }
-
-    data.index = tempIndex;
-    return false;
-}
-
-bool Lexer::_create(Data& data, Token& token, const TokenType& type, std::string_view rule)
-{
-    size_t endIndex{rule.size() == 0 ? 0 : rule.size() - 1};
-    if (data.index + rule.size() > data.size)
-        return false;
-
-    size_t tempIndex{data.index};
-
-    token.type = type;
-    token.line = data.line;
-    token.column = data.column;
-    token.lexeme = "";
-
-    for (size_t i{0}; i <= endIndex; i++)
-    {
-        const char* c{Lexer::_char(data)};
-
-        if (c == nullptr || *c != rule[i])
-        {
-            data.index = tempIndex;
-            data.line = token.line;
-            data.column = token.column;
-            return false;
-        }
-
-        token.lexeme += *c;
-        Lexer::_next(data);
-    }
-
-    return true;
-}
-
-bool Lexer::_createLitStr(Data& data, Token& token)
-{
-    const char* c{Lexer::_char(data)};
-    if (c == nullptr || (*c != '"' && *c != '\''))
-        return false;
-
-    char quote{*c};
-
-    token.type = TokenType::LIT_STR;
-    token.lexeme = quote;
-    token.line = data.line;
-    token.column = data.column;
-
-    Lexer::_next(data);
-    c = Lexer::_char(data);
-
-    while (c != nullptr && *c != quote)
-    {
-        token.lexeme += *c;
-        Lexer::_next(data);
-        c = Lexer::_char(data);
-    }
-
-    if (c != nullptr)
-    {
-        token.lexeme += *c;
-        Lexer::_next(data);
-    }
-
-    return true;
-}
-
-bool Lexer::_createIdentifier(Data& data, Token& token)
-{
-    const char* c{Lexer::_char(data)};
-    if (c == nullptr || (std::isalpha(*c) == 0 && *c != '_'))
-        return false;
-
-    token.type = TokenType::IDENTIFIER;
-    token.lexeme = *c;
-    token.line = data.line;
-    token.column = data.column;
-
-    Lexer::_next(data);
-    c = Lexer::_char(data);
-
-    while (c != nullptr && (std::isalnum(*c) != 0 || *c == '_'))
-    {
-        token.lexeme += *c;
-        Lexer::_next(data);
-        c = Lexer::_char(data);
-    }
-
-    return true;
-}
-
-std::vector<Tokens> Lexer::_loadTokens(Data data)
-{
     std::vector<Tokens> vecTokens;
 
-    Tokens tokens{data.source, {}};
-    auto& elements{tokens.elements};
+    while (!this->_moduleManager->empty())
+    {
+        if (vecTokens.empty())
+            vecTokens.emplace_back(this->_input(this->_moduleManager->front()));
+        else
+            vecTokens.emplace(vecTokens.end() - 1, this->_input(this->_moduleManager->front()));
 
-    elements.emplace_back(Lexer::_nextToken(data));
+        this->_moduleManager->pop();
+    }
+
+    this->_moduleManager = nullptr;
+
+    return vecTokens;
+}
+
+Tokens Lexer::_input(InputStream& inputStream)
+{
+    this->_inputStream = &inputStream;
+
+    Tokens tokens{this->_inputStream, {}};
+
+    auto& elements{tokens.elements};
+    elements.emplace_back(this->_nextToken());
     auto* element{&elements.back()};
 
-    while (element != nullptr && element->type == TokenType::KW_INCLUDE)
+    while (element != nullptr && element->type == TokenType::KW_MODULE)
     {
-        elements.emplace_back(Lexer::_nextToken(data));
+        elements.emplace_back(this->_nextToken());
         element = &elements.back();
 
         if (element->type != TokenType::LIT_STR)
         {
-            Log::saveError(data.source, element->line, element->column, element->lexeme.size(), "[L] Tidak bisa dimuat.");
-
-            elements.emplace_back(Lexer::_nextToken(data));
-            element = &elements.back();
-
+            llvm::errs() << "Tidak bisa dimuat.\n";
             continue;
         }
 
-        std::string source{std::filesystem::weakly_canonical(element->lexeme.substr(1, element->lexeme.size() - 2))};
+        this->_moduleManager->push(element->lexeme.substr(1, element->lexeme.size() - 2));
 
-        if (!this->_files.contains(source))
-        {
-            try
-            {
-                this->_report = false;
-                std::vector<Tokens> importedVecTokens{this->file(source)};
-                this->_report = true;
-
-                for (auto& importedTokens : importedVecTokens)
-                    vecTokens.emplace_back(std::move(importedTokens));
-            }
-            catch (const std::exception& error)
-            {
-                Log::saveError(data.source, element->line, element->column, element->lexeme.size(), "[L] " + (std::string)error.what());
-            }
-        }
-
-        elements.emplace_back(Lexer::_nextToken(data));
+        elements.emplace_back(this->_nextToken());
         element = &elements.back();
     }
 
     while (element != nullptr && element->type != TokenType::NEOF)
     {
-        if (element->type == TokenType::KW_INCLUDE)
-            Log::saveError(data.source, element->line, element->column, element->lexeme.size(), "[L] Tidak dapat memuat file di area ini.");
+        if (element->type == TokenType::KW_MODULE)
+            llvm::errs() << "Tidak dapat memuat file di area ini.\n";
 
-        elements.emplace_back(Lexer::_nextToken(data));
+        elements.emplace_back(this->_nextToken());
         element = &elements.back();
     }
 
-    vecTokens.emplace_back(std::move(tokens));
+    this->_inputStream = nullptr;
 
-    if (this->_report)
-        Log::report();
+    return tokens;
+}
 
-    return vecTokens;
+Token Lexer::_nextToken()
+{
+    if (this->_inputStream == nullptr)
+        return {TokenType::NEOF, "", 0, 0};
+
+    while (!this->_inputStream->end())
+    {
+        if (this->_skipWs() || this->_skipComment())
+            continue;
+
+        Token token;
+        if (this->_makeToken(token))
+            return token;
+        if (this->_makeTokenLitStr(token))
+            return token;
+        if (this->_makeTokenLitNum(token))
+            return token;
+        if (this->_makeTokenId(token))
+            return token;
+
+        token.type = TokenType::UNKNOWN;
+        token.line = this->_inputStream->line();
+        token.column = this->_inputStream->column();
+        token.lexeme = this->_inputStream->cchar();
+        this->_inputStream->next();
+        return token;
+    }
+
+    return {TokenType::NEOF, "", this->_inputStream->line(), this->_inputStream->column()};
+}
+
+bool Lexer::_skipWs()
+{
+    if (this->_inputStream == nullptr || this->_inputStream->end() || !std::isspace(this->_inputStream->cchar()))
+        return false;
+
+    do
+    {
+        this->_inputStream->next();
+    } while (!this->_inputStream->end() && std::isspace(this->_inputStream->cchar()));
+
+    return true;
+}
+
+bool Lexer::_skipComment()
+{
+    // Skip single-line comment "// ..."
+    if (this->_inputStream->cmatch("//"))
+    {
+        this->_inputStream->next(2);
+
+        while (!this->_inputStream->end() && this->_inputStream->cchar() != '\n')
+            this->_inputStream->next();
+
+        return true;
+    }
+
+    this->_inputStream->save();
+
+    // Skip multi-line comment "/* ... */"
+    if (this->_inputStream->cmatch("/*"))
+    {
+        this->_inputStream->next(2);
+
+        while (!this->_inputStream->end())
+        {
+            if (this->_inputStream->cmatch("*/"))
+            {
+                this->_inputStream->next(2);
+                return true;
+            }
+            this->_inputStream->next();
+        }
+
+        this->_inputStream->load();
+        return false;
+    }
+
+    return false;
+}
+
+bool Lexer::_makeToken(Token& token)
+{
+    static constexpr std::array<std::pair<TokenType, std::pair<const char*, bool>>, 12> tokenTypeWithPatterns{{
+        // Parenthesis
+        {TokenType::PAREN_OPEN, {"(", false}},
+
+        // Separators
+        {TokenType::PAREN_CLOSE, {")", false}},
+        {TokenType::PAREN_CLOSE, {",", false}},
+
+        // Data types
+        {TokenType::KW_DT_I1, {"b1", true}},
+        {TokenType::KW_DT_I8, {"b8", true}},
+        {TokenType::KW_DT_I16, {"b16", true}},
+        {TokenType::KW_DT_I32, {"b32", true}},
+        {TokenType::KW_DT_I64, {"b64", true}},
+
+        {TokenType::KW_DT_F32, {"d32", true}},
+        {TokenType::KW_DT_F64, {"d64", true}},
+
+        // Keywords
+        {TokenType::KW_FUNC, {"f", true}},
+        {TokenType::KW_MODULE, {"muat", true}},
+    }};
+
+    for (const auto& [type, patternPair] : tokenTypeWithPatterns)
+    {
+        const auto& [pattern, strict] = patternPair;
+
+        if (pattern == nullptr)
+            continue;
+
+        if (!this->_inputStream->cmatch(pattern))
+            continue;
+
+        const size_t size = std::strlen(pattern);
+
+        if (strict)
+        {
+            size_t futureIndex = this->_inputStream->index() + size;
+            if (futureIndex < this->_inputStream->size())
+            {
+                char futureChar = this->_inputStream->charAt(futureIndex);
+                if (std::isalnum(futureChar))
+                    continue;
+            }
+        }
+
+        token.type = type;
+        token.lexeme = pattern;
+        token.line = this->_inputStream->line();
+        token.column = this->_inputStream->column();
+
+        this->_inputStream->next(size);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Lexer::_makeTokenLitStr(Token& token)
+{
+    if (this->_inputStream->end())
+        return false;
+
+    this->_inputStream->save();
+
+    char quote{this->_inputStream->cchar()};
+    if (quote != '"' && quote != '\'')
+        return false;
+
+    token.type = TokenType::LIT_STR;
+    token.lexeme = quote;
+    token.line = this->_inputStream->line();
+    token.column = this->_inputStream->column();
+
+    this->_inputStream->next();
+
+    while (!this->_inputStream->end())
+    {
+        char c{this->_inputStream->cchar()};
+
+        if (c == quote)
+        {
+            token.lexeme += c;
+            this->_inputStream->next();
+            return true;
+        }
+
+        token.lexeme += c;
+        this->_inputStream->next();
+    }
+
+    this->_inputStream->load();
+    return false;
+}
+
+bool Lexer::_makeTokenLitNum(Token& token)
+{
+    if (this->_inputStream->end())
+        return false;
+
+    this->_inputStream->save();
+
+    bool hasDot{false};
+    bool hasDigit{false};
+
+    token.type = TokenType::LIT_NUM;
+    token.lexeme = "";
+    token.line = this->_inputStream->line();
+    token.column = this->_inputStream->column();
+
+    while (!this->_inputStream->end())
+    {
+        char c{this->_inputStream->cchar()};
+
+        if (std::isdigit(c))
+        {
+            hasDigit = true;
+            token.lexeme += c;
+        }
+        else if (c == '.' && !hasDot)
+        {
+            hasDot = true;
+            token.lexeme += c;
+        }
+        else
+        {
+            break;
+        }
+
+        this->_inputStream->next();
+    }
+
+    // If there is only a point without numbers, invalid
+    if (!hasDigit)
+    {
+        this->_inputStream->load();
+        return false;
+    }
+
+    return true;
+}
+
+bool Lexer::_makeTokenId(Token& token)
+{
+    if (this->_inputStream->end())
+        return false;
+
+    char c{this->_inputStream->cchar()};
+
+    // Identifier must begin with letters or underscore
+    if (!std::isalpha(c) && c != '_')
+        return false;
+
+    token.type = TokenType::ID;
+    token.lexeme.clear();
+    token.line = this->_inputStream->line();
+    token.column = this->_inputStream->column();
+
+    // Add the first character
+    token.lexeme += c;
+    this->_inputStream->next();
+
+    // Loop to take the remaining identifier (letters, numbers, or underscore)
+    while (!this->_inputStream->end())
+    {
+        c = this->_inputStream->cchar();
+
+        if (!std::isalnum(c) && c != '_')
+            break;
+
+        token.lexeme += c;
+        this->_inputStream->next();
+    }
+
+    return true;
 }
 
 } // namespace nusantara

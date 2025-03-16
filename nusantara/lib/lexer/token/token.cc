@@ -14,7 +14,7 @@ namespace nusantara {
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Token& token)
 {
-    os << token.line << ":" << token.column << " [" << token.type << "] " << token.lexeme;
+    os << token.line + 1 << ":" << token.column + 1 << " [" << token.type << "] " << token.lexeme;
     return os;
 }
 
