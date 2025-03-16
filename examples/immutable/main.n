@@ -1,7 +1,0 @@
-muat 'cetak.n'
-// In Nusantara, variables are immutable by default.
-des PI = 3.14
-cetak((teks)PI + '\n')
-
-// Immutable
-PI = 10 // Error

@@ -1,9 +1,0 @@
-// Import cetak module
-muat 'cetak.n'
-
-/*
-    The code below will
-    print Hello World to
-    the screen.
-*/
-cetak('Hello World!\n')

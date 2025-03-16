@@ -1,0 +1,5 @@
+muat 'examples/comments.n'
+muat 'examples/cetak.n'
+muat 'examples/empty.n'
+
+cetak(20)
