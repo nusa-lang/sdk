@@ -1,7 +1,7 @@
 CheckOptions:
   misc-const-correctness.WarnPointersAsValues: true
   misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
-  # readability-magic-numbers.IgnoredIntegerValues: 0;
+  readability-magic-numbers.IgnoredIntegerValues: [1, 10]
 Checks: >
     *,
     -abseil-*,
