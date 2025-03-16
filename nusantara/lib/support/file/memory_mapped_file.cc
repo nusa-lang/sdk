@@ -8,13 +8,18 @@
  */
 
 #include "nusantara/support/file/memory_mapped_file.h"
+#include <cstddef>
 #include <stdexcept>
-#include <string>
+#include <utility>
 
 #ifdef _WIN32
+    #include <fileapi.h>
+    #include <handleapi.h>
+    #include <memoryapi.h>
+    #include <minwindef.h>
     #include <windows.h>
+    #include <winnt.h>
 #else
-    #include <cstddef>
     #include <fcntl.h>
     #include <sys/mman.h>
     #include <sys/stat.h>
@@ -23,137 +28,103 @@
 
 namespace nusantara {
 
-MemoryMappedFile::MemoryMappedFile(MemoryMappedFile&& other) noexcept : _chars(other._chars), _size(other._size)
-{
-    other._chars = nullptr;
-    other._size = 0;
+MemoryMappedFile::MemoryMappedFile() = default;
 
+MemoryMappedFile::MemoryMappedFile(MemoryMappedFile&& other) noexcept
+    : _path(std::exchange(other._path, nullptr)), _chars(std::exchange(other._chars, nullptr)), _size(std::exchange(other._size, 0))
 #ifdef _WIN32
-
-    this->_mapping = other._mapping;
-    this->_file = other._file;
-    other._mapping = NULL;
-    other._file = INVALID_HANDLE_VALUE;
-
+      ,
+      _mapping(std::exchange(other._mapping, nullptr)), _file(std::exchange(other._file, nullptr))
 #else
-
-    this->_fd = other._fd;
-    other._fd = -1;
-
+      ,
+      _fd(std::exchange(other._fd, -1))
 #endif
+{
 }
 
 MemoryMappedFile& MemoryMappedFile::operator=(MemoryMappedFile&& other) noexcept
 {
     if (this != &other)
     {
-        this->_reset();
-
-        this->_chars = other._chars;
-        this->_size = other._size;
-
+        this->clear();
+        this->_path = std::exchange(other._path, nullptr);
+        this->_chars = std::exchange(other._chars, nullptr);
+        this->_size = std::exchange(other._size, 0);
 #ifdef _WIN32
-
-        this->_mapping = other._mapping;
-        this->_file = other._file;
-        other._mapping = NULL;
-        other._file = INVALID_HANDLE_VALUE;
-
+        this->_mapping = std::exchange(other._mapping, nullptr);
+        this->_file = std::exchange(other._file, nullptr);
 #else
-
-        this->_fd = other._fd;
-        other._fd = -1;
-
+        this->_fd = std::exchange(other._fd, -1);
 #endif
-
-        other._chars = nullptr;
-        other._size = 0;
     }
     return *this;
 }
 
+MemoryMappedFile::MemoryMappedFile(const char* path)
+{
+    this->set(path);
+}
+
 MemoryMappedFile::~MemoryMappedFile()
 {
-    this->_reset();
-};
+    this->clear();
+}
 
-MemoryMappedFile MemoryMappedFile::create(const std::string& filePath)
+void MemoryMappedFile::set(const char* path)
 {
-    MemoryMappedFile mmf;
+    this->clear();
+
+    this->_path = path;
 
 #ifdef _WIN32
-    mmf._file = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (mmf._file == INVALID_HANDLE_VALUE)
-        throw std::runtime_error("Gagal membuka file.");
+    constexpr DWORD FILE_SHARE_ALL = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
+    this->_file = CreateFileA(path, GENERIC_READ, FILE_SHARE_ALL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (this->_file == INVALID_HANDLE_VALUE)
+        throw std::runtime_error("Gagal membuka berkas.");
 
-    DWORD fileSize = GetFileSize(mmf._file, NULL);
-    if (fileSize == 0)
-    {
-        CloseHandle(mmf._file);
-        mmf._file = INVALID_HANDLE_VALUE;
-        return mmf;
-    }
+    LARGE_INTEGER fileSize;
+    if (!GetFileSizeEx(this->_file, &fileSize) || fileSize.QuadPart == 0)
+        return;
 
-    mmf._mapping = CreateFileMapping(mmf._file, NULL, PAGE_READONLY, 0, 0, NULL);
-    if (mmf._mapping == NULL)
-    {
-        CloseHandle(mmf._file);
-        mmf._file = INVALID_HANDLE_VALUE;
-        throw std::runtime_error("Gagal membuat pemetaan file.");
-    }
+    this->_mapping = CreateFileMapping(this->_file, NULL, PAGE_READONLY, 0, 0, NULL);
+    if (!this->_mapping)
+        throw std::runtime_error("Gagal membuat pemetaan berkas.");
 
-    mmf._chars = static_cast<char*>(MapViewOfFile(mmf._mapping, FILE_MAP_READ, 0, 0, 0));
-    if (mmf._chars == nullptr)
-    {
-        CloseHandle(mmf._mapping);
-        mmf._mapping = NULL;
-        CloseHandle(mmf._file);
-        mmf._file = INVALID_HANDLE_VALUE;
-        throw std::runtime_error("Gagal memetakan tampilan file.");
-    }
+    this->_chars = static_cast<char*>(MapViewOfFile(this->_mapping, FILE_MAP_READ, 0, 0, 0));
+    if (!this->_chars)
+        throw std::runtime_error("Gagal memetakan tampilan berkas.");
 
-    mmf._size = fileSize;
-
+    this->_size = static_cast<size_t>(fileSize.QuadPart);
 #else
-
-    mmf._fd = open(filePath.c_str(), O_RDONLY);
-    if (mmf._fd == -1)
-        throw std::runtime_error("Gagal membuka file.");
+    this->_fd = open(path, O_RDONLY);
+    if (this->_fd == -1)
+        throw std::runtime_error("Gagal membuka berkas.");
 
     struct stat fileStat{};
-    if (fstat(mmf._fd, &fileStat) == -1)
-    {
-        close(mmf._fd);
-        throw std::runtime_error("Gagal mendapatkan ukuran file.");
-    }
+    if (fstat(this->_fd, &fileStat) == -1)
+        throw std::runtime_error("Gagal mendapatkan ukuran berkas.");
+    if ((this->_size = fileStat.st_size) == 0)
+        return;
 
-    size_t fileSize = fileStat.st_size;
-    if (fileSize == 0)
-    {
-        close(mmf._fd);
-        return mmf;
-    }
+    this->_chars = static_cast<char*>(mmap(nullptr, this->_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, this->_fd, 0));
+    if (this->_chars == MAP_FAILED)
+        throw std::runtime_error("Gagal melakukan pemetaan memori.");
 
-    mmf._chars = static_cast<char*>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, mmf._fd, 0));
-    if (mmf._chars == MAP_FAILED)
-    {
-        mmf._chars = nullptr;
-        close(mmf._fd);
-        throw std::runtime_error("mmap gagal.");
-    }
-
-    madvise(mmf._chars, fileSize, MADV_SEQUENTIAL);
-
-    mmf._size = fileSize;
-
+    if (this->_size > 64 * 1024) // If file is larger than 64KB, use sequential access hint
+        madvise(this->_chars, this->_size, MADV_SEQUENTIAL);
+    else
+        madvise(this->_chars, this->_size, MADV_NORMAL);
 #endif
+}
 
-    return mmf;
+const char* MemoryMappedFile::path() const
+{
+    return this->_path;
 }
 
 const char* MemoryMappedFile::chars() const
 {
-    return this->_chars;
+    return ((this->_chars != nullptr) ? this->_chars : "");
 }
 
 const size_t& MemoryMappedFile::size() const
@@ -161,39 +132,24 @@ const size_t& MemoryMappedFile::size() const
     return this->_size;
 }
 
-void MemoryMappedFile::_reset()
+void MemoryMappedFile::clear()
 {
-    if (this->_chars != nullptr)
-    {
 #ifdef _WIN32
+    if (this->_chars)
         UnmapViewOfFile(this->_chars);
-#else
-        munmap(this->_chars, this->_size);
-#endif
-
-        this->_chars = nullptr;
-        this->_size = 0;
-    }
-
-#ifdef _WIN32
-    if (this->_mapping != NULL)
-    {
+    if (this->_mapping)
         CloseHandle(this->_mapping);
-        this->_mapping = NULL;
-    }
-
     if (this->_file != INVALID_HANDLE_VALUE)
-    {
         CloseHandle(this->_file);
-        this->_file = INVALID_HANDLE_VALUE;
-    }
 #else
+    if (this->_chars)
+        munmap(this->_chars, _size);
     if (this->_fd != -1)
-    {
         close(this->_fd);
-        this->_fd = -1;
-    }
 #endif
+    this->_path = nullptr;
+    this->_chars = nullptr;
+    this->_size = 0;
 }
 
-} // namespace nusantara
+}; // namespace nusantara

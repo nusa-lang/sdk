@@ -7,15 +7,19 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_SUPPORT_MEMORY_MAPPED_FILE_H
-#define NUSANTARA_SUPPORT_MEMORY_MAPPED_FILE_H
+#ifndef NUSANTARA_SUPPORT_FILE_MEMORY_MAPPED_FILE_H
+#define NUSANTARA_SUPPORT_FILE_MEMORY_MAPPED_FILE_H
 
 #include <cstddef>
-#include <llvm/Support/raw_ostream.h>
-#include <string>
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <winnt.h>
+#else
+    #include <fcntl.h>
+    #include <sys/mman.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
 #endif
 
 namespace nusantara {
@@ -23,33 +27,37 @@ namespace nusantara {
 class MemoryMappedFile
 {
 public:
+    MemoryMappedFile();
+
     MemoryMappedFile(const MemoryMappedFile&) = delete;
     MemoryMappedFile& operator=(const MemoryMappedFile&) = delete;
 
     MemoryMappedFile(MemoryMappedFile&& other) noexcept;
     MemoryMappedFile& operator=(MemoryMappedFile&& other) noexcept;
 
+    MemoryMappedFile(const char* path);
+
     ~MemoryMappedFile();
 
-    static MemoryMappedFile create(const std::string& filePath);
+    void set(const char* path);
 
+    [[nodiscard]] const char* path() const;
     [[nodiscard]] const char* chars() const;
     [[nodiscard]] const size_t& size() const;
 
-private:
-    MemoryMappedFile() = default;
+    void clear();
 
+private:
+    const char* _path{nullptr};
     char* _chars{nullptr};
     size_t _size{0};
 
 #ifdef _WIN32
-    HANDLE _mapping{NULL};
-    HANDLE _file{INVALID_HANDLE_VALUE};
+    HANDLE _mapping{nullptr};
+    HANDLE _file{nullptr};
 #else
     int _fd{-1};
 #endif
-
-    void _reset();
 };
 
 } // namespace nusantara
