@@ -21,7 +21,7 @@ ModuleManager::ModuleManager() = default;
 
 void ModuleManager::push(std::string path)
 {
-    path = std::filesystem::weakly_canonical(path);
+    path = std::filesystem::weakly_canonical(path).string();
 
     if (!this->_paths.contains(path))
     {
