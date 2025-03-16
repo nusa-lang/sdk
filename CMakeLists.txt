@@ -157,32 +157,15 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebI
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
-# Include the FetchContent module, which is used to manage external dependencies
-include(FetchContent)
-
-# Define the UNIT_TEST option, allowing users to enable or disable unit tests
-# By default, unit tests are disabled (OFF)
-option(UNIT_TEST "Enable unit tests and include the test folder in the build" OFF)
-
-# Check if UNIT_TEST is set to ON
-if(UNIT_TEST)
-    # Display a status message indicating that unit tests are enabled
-    message(STATUS "Unit tests are enabled. The test folder will be included in the build.")
-
-    # Find GoogleTest package
-    find_package(GTest REQUIRED)
-
-    # Enable testing in CMake
-    enable_testing()
-else()
-    # Display a status message indicating that unit tests are disabled
-    message(STATUS "Unit tests are disabled. The test folder will not be included in the build.")
-endif()
-
 # Define a list of Nusantara subprojects to be built
 set(NUSANTARA_PROJECTS
     nusantara # Main Nusantara project
 )
+
+# Include the CMake script that handles SDK versioning.
+# This script sets the version numbers, build date, build time,
+# and system information dynamically during the CMake configuration process.
+include(cmake/sdk_version.cmake)
 
 # Include the script for clang-format (code formatting)
 include(cmake/clang_format.cmake)
@@ -192,8 +175,3 @@ include(cmake/llvm_static.cmake)
 
 # Include the script to handle Nusantara subprojects
 include(cmake/nusantara_projects.cmake)
-
-# Include the CMake script that handles SDK versioning.
-# This script sets the version numbers, build date, build time,
-# and system information dynamically during the CMake configuration process.
-include(cmake/sdk_version.cmake)
