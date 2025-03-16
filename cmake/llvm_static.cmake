@@ -3,6 +3,7 @@ if(NOT LLVM_STATIC_LIB_SEARCH_PATHS)
     set(LLVM_STATIC_LIB_SEARCH_PATHS
         /usr/lib
         /usr/local/lib
+        C:/msys64/clang64/lib
     )
 endif()
 
