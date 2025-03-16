@@ -1,2 +1,18 @@
-# Add the "nusantara" subdirectory to the build process
-add_subdirectory(nusantara)
+# Define the executable target named "nusantara" using the source file "nusantara.cc"
+add_executable(nusantara
+    "nusantara.cc"
+)
+
+# Link the "nusantara" executable with the specified libraries
+target_link_libraries(nusantara PRIVATE
+    ${LLVMSupport} # Link with LLVM Support static library
+    NusantaraSupport # Link with Nusantara Support static library
+    NusantaraModule # Link with Nusantara Module static library
+    NusantaraLexer # Link with Nusantara Lexer static library
+)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_link_libraries(nusantara PRIVATE
+        ntdll # Link with ntdll.dll dynamic library
+    )
+endif()
