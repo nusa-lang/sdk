@@ -8,10 +8,15 @@
  */
 
 #include "nusantara/support/out_stream.h"
+#include <cstddef>
 #include <string>
 #include <string_view>
 
 #ifdef _WIN32
+    #include <windows.h>
+
+    #include <consoleapi.h>
+    #include <processenv.h>
 #else
     #include <cstring>
     #include <unistd.h>
@@ -22,6 +27,7 @@ namespace nusantara {
 OutStream& OutStream::write(const char* buf, size_t size)
 {
 #ifdef _WIN32
+    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), buf, size, nullptr, nullptr);
 #else
     ::write(1, buf, size);
 #endif
