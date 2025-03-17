@@ -12,12 +12,15 @@
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/module/module_manager.h"
+#include "nusantara/support/diagnostic/diagnostic_category.h"
+#include "nusantara/support/diagnostic/diagnostic_module.h"
+#include "nusantara/support/diagnostic/diagnostics.h"
 #include "nusantara/support/input_stream.h"
 #include <array>
 #include <cctype>
 #include <cstddef>
 #include <cstring>
-#include <llvm/Support/raw_ostream.h>
+#include <exception>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,9 +29,10 @@ namespace nusantara {
 
 Lexer::Lexer() = default;
 
-std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager)
+std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager, Diagnostics& diagnostics)
 {
     this->_moduleManager = &moduleManager;
+    this->_diagnostics = &diagnostics;
 
     std::vector<Tokens> vecTokens;
 
@@ -45,6 +49,11 @@ std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager)
     this->_moduleManager = nullptr;
 
     return vecTokens;
+}
+
+void Lexer::_diagnosticError(const Token& token, std::string message)
+{
+    this->_diagnostics->add({DiagnosticCategory::error, DiagnosticModule::lexer, this->_inputStream, {{token.line, token.column, token.lexeme.size()}}, std::move(message)});
 }
 
 Tokens Lexer::_input(InputStream& inputStream)
@@ -64,11 +73,18 @@ Tokens Lexer::_input(InputStream& inputStream)
 
         if (element->type != TokenType::LIT_STR)
         {
-            llvm::errs() << "Tidak bisa dimuat.\n";
+            this->_diagnosticError(*element, "Tidak bisa dimuat.");
             continue;
         }
 
-        this->_moduleManager->push(element->lexeme.substr(1, element->lexeme.size() - 2));
+        try
+        {
+            this->_moduleManager->push(element->lexeme.substr(1, element->lexeme.size() - 2));
+        }
+        catch (const std::exception& error)
+        {
+            this->_diagnosticError(*element, error.what());
+        }
 
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
@@ -77,7 +93,7 @@ Tokens Lexer::_input(InputStream& inputStream)
     while (element != nullptr && element->type != TokenType::NEOF)
     {
         if (element->type == TokenType::KW_MODULE)
-            llvm::errs() << "Tidak dapat memuat file di area ini.\n";
+            this->_diagnosticError(*element, "Tidak dapat memuat file di area ini.");
 
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
@@ -112,6 +128,7 @@ Token Lexer::_nextToken()
         token.line = this->_inputStream->line();
         token.column = this->_inputStream->column();
         token.lexeme = this->_inputStream->cchar();
+        this->_diagnosticError(token, "Tidak dikenal.");
         this->_inputStream->next();
         return token;
     }
@@ -145,7 +162,7 @@ bool Lexer::_skipComment()
         return true;
     }
 
-    this->_inputStream->save();
+    this->_inputStream->saveStateTemp();
 
     // Skip multi-line comment "/* ... */"
     if (this->_inputStream->cmatch("/*"))
@@ -162,7 +179,7 @@ bool Lexer::_skipComment()
             this->_inputStream->next();
         }
 
-        this->_inputStream->load();
+        this->_inputStream->loadStateTemp();
         return false;
     }
 
@@ -235,7 +252,7 @@ bool Lexer::_makeTokenLitStr(Token& token)
     if (this->_inputStream->end())
         return false;
 
-    this->_inputStream->save();
+    this->_inputStream->saveStateTemp();
 
     char quote{this->_inputStream->cchar()};
     if (quote != '"' && quote != '\'')
@@ -263,7 +280,7 @@ bool Lexer::_makeTokenLitStr(Token& token)
         this->_inputStream->next();
     }
 
-    this->_inputStream->load();
+    this->_inputStream->loadStateTemp();
     return false;
 }
 
@@ -272,7 +289,7 @@ bool Lexer::_makeTokenLitNum(Token& token)
     if (this->_inputStream->end())
         return false;
 
-    this->_inputStream->save();
+    this->_inputStream->saveStateTemp();
 
     bool hasDot{false};
     bool hasDigit{false};
@@ -307,7 +324,7 @@ bool Lexer::_makeTokenLitNum(Token& token)
     // If there is only a point without numbers, invalid
     if (!hasDigit)
     {
-        this->_inputStream->load();
+        this->_inputStream->loadStateTemp();
         return false;
     }
 
