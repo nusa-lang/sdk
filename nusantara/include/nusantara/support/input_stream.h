@@ -15,8 +15,7 @@
 #include <cstddef>
 #include <map>
 #include <optional>
-#include <stack>
-#include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace nusantara {
@@ -52,12 +51,12 @@ public:
     const char* input() const;
     bool file();
 
-    void save();
-    void load();
+    void saveStateTemp();
+    void loadStateTemp();
 
     size_t maxIndex();
     size_t maxLine();
-    std::string strFromline(const size_t& line);
+    std::string_view lineView(const size_t& line);
 
 private:
     std::optional<MemoryMappedFile> _file{std::nullopt};
@@ -65,7 +64,7 @@ private:
 
     size_t _size{0};
 
-    std::stack<std::array<size_t, 3>> _statesStorage;
+    std::array<size_t, 3> _stateTemp{0, 0, 0};
     std::unordered_map<size_t, std::map<size_t, size_t>> _statesCache;
 
     size_t _index{0};

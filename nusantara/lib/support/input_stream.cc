@@ -14,6 +14,8 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 
 namespace nusantara {
 
@@ -164,21 +166,19 @@ bool InputStream::file()
     return this->_file.has_value();
 }
 
-void InputStream::save()
+void InputStream::saveStateTemp()
 {
-    this->_statesStorage.push({this->_index, this->_line, this->_column});
+    this->_stateTemp = {this->_index, this->_line, this->_column};
 }
 
-void InputStream::load()
+void InputStream::loadStateTemp()
 {
-    if (this->_statesStorage.empty())
-        throw std::runtime_error("Cannot load empty _statesStorage.");
+    if (this->_stateTemp.empty())
+        throw std::runtime_error("Cannot load empty _stateTemp.");
 
-    this->_index = this->_statesStorage.top()[0];
-    this->_line = this->_statesStorage.top()[1];
-    this->_column = this->_statesStorage.top()[2];
-
-    this->_statesStorage.pop();
+    this->_index = std::exchange(this->_stateTemp[0], 0);
+    this->_line = std::exchange(this->_stateTemp[1], 0);
+    this->_column = std::exchange(this->_stateTemp[2], 0);
 }
 
 size_t InputStream::maxIndex()
@@ -191,12 +191,15 @@ size_t InputStream::maxLine()
     return this->_statesCache.size() > 0 ? this->_statesCache.size() - 1 : 0;
 }
 
-std::string InputStream::strFromline(const size_t& line)
+std::string_view InputStream::lineView(const size_t& line)
 {
     this->_lineValidation(line);
 
     const auto& it{this->_statesCache.find(line)};
-    return {this->_input + it->second.begin()->first, this->_input + it->second.rbegin()->first};
+    if (it->second.size() > 1)
+        return {this->_input + it->second.begin()->first, this->_input + (it->second.rbegin()->first + 1 == this->_size ? it->second.rbegin()->first + 1 : it->second.rbegin()->first)};
+    else
+        return {this->_input + it->second.begin()->first};
 }
 
 void InputStream::_indexValidation(const size_t& index)
