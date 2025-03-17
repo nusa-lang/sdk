@@ -10,6 +10,7 @@
 #include "nusantara/lexer/lexer.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/module/module_manager.h"
+#include "nusantara/support/diagnostic/diagnostics.h"
 #include <cstdlib>
 #include <exception>
 #include <llvm/Support/raw_ostream.h>
@@ -23,13 +24,19 @@ int main(int argc, char* argv[])
     try
     {
         llvm::outs() << "Nusantara Programming Language (Development)\n\n";
+
         ModuleManager mm;
 
         mm.push("examples/main.n");
 
         Lexer lexer;
 
-        std::vector<Tokens> vectokens{lexer.tokenization(mm)};
+        Diagnostics diagnostics;
+        std::vector<Tokens> vectokens{lexer.tokenization(mm, diagnostics)};
+
+        llvm::outs() << diagnostics;
+        if (diagnostics.hasError())
+            return -1;
 
         for (const auto& tokens : vectokens)
             llvm::outs() << tokens << "\n";
