@@ -124,7 +124,7 @@ const char* MemoryMappedFile::path() const
 
 const char* MemoryMappedFile::chars() const
 {
-    return ((this->_chars != nullptr) ? this->_chars : "");
+    return this->_chars;
 }
 
 const size_t& MemoryMappedFile::size() const

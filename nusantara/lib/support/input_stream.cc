@@ -9,6 +9,7 @@
 
 #include "nusantara/support/input_stream.h"
 #include "nusantara/support/memory_mapped_file.h"
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <optional>
@@ -71,13 +72,13 @@ void InputStream::index(const size_t& index)
 
 bool InputStream::end()
 {
-    return ((this->maxIndex() > 0) ? (this->_index > this->maxIndex()) : true);
+    return this->_index >= this->_size;
 }
 
 void InputStream::next()
 {
     if (this->end())
-        throw std::out_of_range("Cannot move to the next character: index " + std::to_string(this->_index) + " exceeds max (" + std::to_string(this->maxIndex()) + ").");
+        throw std::out_of_range("Cannot move to the next character: index " + std::to_string(this->_index) + " exceeds max (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
 
     if (!this->_statesCache.contains(this->_line))
         this->_statesCache[this->_line] = {};
@@ -181,16 +182,6 @@ void InputStream::loadStateTemp()
     this->_column = std::exchange(this->_stateTemp[2], 0);
 }
 
-size_t InputStream::maxIndex()
-{
-    return this->_size > 0 ? this->_size - 1 : 0;
-}
-
-size_t InputStream::maxLine()
-{
-    return this->_statesCache.size() > 0 ? this->_statesCache.size() - 1 : 0;
-}
-
 std::string_view InputStream::lineView(const size_t& line)
 {
     this->_lineValidation(line);
@@ -204,20 +195,18 @@ std::string_view InputStream::lineView(const size_t& line)
 
 void InputStream::_indexValidation(const size_t& index)
 {
-    const auto& maxIndex{this->maxIndex()};
-    if (index <= maxIndex)
+    if (index < this->_size)
         return;
 
-    throw std::out_of_range("Index " + std::to_string(index) + " exceeds max (" + std::to_string(maxIndex) + ").");
+    throw std::out_of_range("Index " + std::to_string(index) + " exceeds max (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
 }
 
 void InputStream::_lineValidation(const size_t& line)
 {
-    const auto& maxLine{this->maxLine()};
-    if (line <= maxLine)
+    if (line < this->_statesCache.size())
         return;
 
-    throw std::out_of_range("Line " + std::to_string(line) + " exceeds max (" + std::to_string(maxLine) + ").");
+    throw std::out_of_range("Line " + std::to_string(line) + " exceeds max (" + std::to_string(std::min((size_t)0, this->_statesCache.size() - 1)) + ").");
 }
 
 } // namespace nusantara

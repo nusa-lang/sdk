@@ -54,8 +54,6 @@ public:
     void saveStateTemp();
     void loadStateTemp();
 
-    size_t maxIndex();
-    size_t maxLine();
     std::string_view lineView(const size_t& line);
 
 private:
