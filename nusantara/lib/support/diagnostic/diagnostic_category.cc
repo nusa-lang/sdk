@@ -8,12 +8,12 @@
  */
 
 #include "nusantara/support/diagnostic/diagnostic_category.h"
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 #include <magic_enum.hpp>
 
 namespace nusantara {
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const DiagnosticCategory& diagnosticCategory)
+OutStream& operator<<(OutStream& os, const DiagnosticCategory& diagnosticCategory)
 {
     switch (diagnosticCategory)
     {

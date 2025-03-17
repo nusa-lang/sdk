@@ -11,8 +11,8 @@
 #define NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTICS_H
 
 #include "nusantara/support/diagnostic/diagnostic.h"
+#include "nusantara/support/out_stream.h"
 #include <cstddef>
-#include <llvm/Support/raw_ostream.h>
 #include <vector>
 
 namespace nusantara {
@@ -20,7 +20,7 @@ namespace nusantara {
 class Diagnostics
 {
 public:
-    friend llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Diagnostics& diagnostics);
+    friend OutStream& operator<<(OutStream& os, const Diagnostics& diagnostics);
 
     void add(Diagnostic diagnostic);
 

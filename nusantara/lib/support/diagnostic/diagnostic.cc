@@ -8,12 +8,12 @@
  */
 
 #include "nusantara/support/diagnostic/diagnostic.h"
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 #include <string>
 
 namespace nusantara {
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Diagnostic& diagnostic)
+OutStream& operator<<(OutStream& os, const Diagnostic& diagnostic)
 {
     if (diagnostic.inputStream)
     {

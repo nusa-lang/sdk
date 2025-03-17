@@ -10,7 +10,7 @@
 #ifndef NUSANTARA_SUPPORT_INPUT_STREAM_H
 #define NUSANTARA_SUPPORT_INPUT_STREAM_H
 
-#include "nusantara/support/file/memory_mapped_file.h"
+#include "nusantara/support/memory_mapped_file.h"
 #include <array>
 #include <cstddef>
 #include <map>

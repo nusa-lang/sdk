@@ -11,8 +11,8 @@
 #define NUSANTARA_LEXER_TOKEN_TOKEN_H
 
 #include "nusantara/lexer/token/token_type.h"
+#include "nusantara/support/out_stream.h"
 #include <cstddef>
-#include <llvm/Support/raw_ostream.h>
 #include <string>
 
 namespace nusantara {
@@ -25,7 +25,7 @@ struct Token
     size_t column{0};
 };
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Token& token);
+OutStream& operator<<(OutStream& os, const Token& token);
 
 } // namespace nusantara
 

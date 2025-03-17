@@ -6,8 +6,3 @@ file(GLOB_RECURSE NUSANTARA_SUPPORT_SRC_FILES
 
 # Create a library target 'NusantaraSupport' using the collected source files
 add_library(NusantaraSupport ${NUSANTARA_SUPPORT_SRC_FILES})
-
-# Link the "NusantaraSupport" library with the specified libraries
-target_link_libraries(NusantaraSupport PRIVATE
-    ${LLVMSupport} # Link with LLVM Support static library
-)

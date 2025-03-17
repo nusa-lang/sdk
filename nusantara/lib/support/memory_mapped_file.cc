@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "nusantara/support/file/memory_mapped_file.h"
+#include "nusantara/support/memory_mapped_file.h"
 #include <cstddef>
 #include <stdexcept>
 #include <utility>

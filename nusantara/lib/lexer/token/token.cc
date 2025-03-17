@@ -8,13 +8,13 @@
  */
 
 #include "nusantara/lexer/token/token.h"
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 
 namespace nusantara {
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Token& token)
+OutStream& operator<<(OutStream& os, const Token& token)
 {
-    os << token.line + 1 << ":" << token.column + 1 << " [" << token.type << "] " << token.lexeme;
+    os << token.line + 1 << ':' << token.column + 1 << " [" << token.type << "] " << token.lexeme;
     return os;
 }
 

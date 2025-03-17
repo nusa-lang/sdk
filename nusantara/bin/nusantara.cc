@@ -11,9 +11,9 @@
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/module/module_manager.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
+#include "nusantara/support/out_stream.h"
 #include <cstdlib>
 #include <exception>
-#include <llvm/Support/raw_ostream.h>
 #include <string>
 #include <vector>
 
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        llvm::outs() << "Nusantara Programming Language (Development)\n\n";
+        outs() << "Nusantara Programming Language (Development)\n\n";
 
         ModuleManager mm;
 
@@ -34,18 +34,18 @@ int main(int argc, char* argv[])
         Diagnostics diagnostics;
         std::vector<Tokens> vectokens{lexer.tokenization(mm, diagnostics)};
 
-        llvm::outs() << diagnostics;
+        outs() << diagnostics;
         if (diagnostics.hasError())
             return -1;
 
         for (const auto& tokens : vectokens)
-            llvm::outs() << tokens << "\n";
+            outs() << tokens << "\n";
 
-        llvm::outs() << "\nProgram completed.\n";
+        outs() << "\nProgram completed.\n";
     }
     catch (const std::exception& error)
     {
-        llvm::outs() << error.what() << "\n";
+        outs() << error.what() << "\n";
         return 1;
     }
 

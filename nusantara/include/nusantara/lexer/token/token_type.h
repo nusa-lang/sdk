@@ -10,7 +10,7 @@
 #ifndef NUSANTARA_LEXER_TOKEN_TOKEN_TYPE_H
 #define NUSANTARA_LEXER_TOKEN_TOKEN_TYPE_H
 
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 
 namespace nusantara {
 
@@ -47,7 +47,7 @@ enum class TokenType
     NEOF,    // eof
 };
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const TokenType& type);
+OutStream& operator<<(OutStream& os, const TokenType& type);
 
 } // namespace nusantara
 

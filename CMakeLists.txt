@@ -170,8 +170,5 @@ include(cmake/sdk_version.cmake)
 # Include the script for clang-format (code formatting)
 include(cmake/clang_format.cmake)
 
-# Include the script for llvm
-include(cmake/llvm_static.cmake)
-
 # Include the script to handle Nusantara subprojects
 include(cmake/nusantara_projects.cmake)

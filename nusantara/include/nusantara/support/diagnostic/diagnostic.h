@@ -13,8 +13,8 @@
 #include "nusantara/support/diagnostic/diagnostic_category.h"
 #include "nusantara/support/diagnostic/diagnostic_module.h"
 #include "nusantara/support/input_stream.h"
+#include "nusantara/support/out_stream.h"
 #include <cstddef>
-#include <llvm/Support/raw_ostream.h>
 #include <string>
 #include <vector>
 
@@ -36,7 +36,7 @@ struct Diagnostic
     std::string message;
 };
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Diagnostic& diagnostic);
+OutStream& operator<<(OutStream& os, const Diagnostic& diagnostic);
 
 } // namespace nusantara
 

@@ -10,7 +10,7 @@
 #ifndef NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_CATEGORY_H
 #define NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_CATEGORY_H
 
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 
 namespace nusantara {
 
@@ -20,7 +20,7 @@ enum class DiagnosticCategory
     error
 };
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const DiagnosticCategory& diagnosticCategory);
+OutStream& operator<<(OutStream& os, const DiagnosticCategory& diagnosticCategory);
 
 } // namespace nusantara
 

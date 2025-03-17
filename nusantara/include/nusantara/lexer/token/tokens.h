@@ -12,7 +12,7 @@
 
 #include "nusantara/lexer/token/token.h"
 #include "nusantara/support/input_stream.h"
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 #include <vector>
 
 namespace nusantara {
@@ -23,7 +23,7 @@ struct Tokens
     std::vector<Token> elements;
 };
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Tokens& tokens);
+OutStream& operator<<(OutStream& os, const Tokens& tokens);
 
 } // namespace nusantara
 

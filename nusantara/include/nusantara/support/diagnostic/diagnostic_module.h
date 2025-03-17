@@ -10,7 +10,7 @@
 #ifndef NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_MODULE_H
 #define NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_MODULE_H
 
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 
 namespace nusantara {
 
@@ -19,7 +19,7 @@ enum class DiagnosticModule
     Lexer
 };
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const DiagnosticModule& diagnosticModule);
+OutStream& operator<<(OutStream& os, const DiagnosticModule& diagnosticModule);
 
 } // namespace nusantara
 

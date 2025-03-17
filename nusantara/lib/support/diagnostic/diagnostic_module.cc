@@ -8,12 +8,12 @@
  */
 
 #include "nusantara/support/diagnostic/diagnostic_module.h"
-#include <llvm/Support/raw_ostream.h>
+#include "nusantara/support/out_stream.h"
 #include <magic_enum.hpp>
 
 namespace nusantara {
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const DiagnosticModule& diagnosticModule)
+OutStream& operator<<(OutStream& os, const DiagnosticModule& diagnosticModule)
 {
     return os << magic_enum::enum_name(diagnosticModule);
 }

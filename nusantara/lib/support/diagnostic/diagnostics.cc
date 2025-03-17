@@ -10,14 +10,14 @@
 #include "nusantara/support/diagnostic/diagnostics.h"
 #include "nusantara/support/diagnostic/diagnostic.h"
 #include "nusantara/support/diagnostic/diagnostic_category.h"
+#include "nusantara/support/out_stream.h"
 #include <algorithm>
 #include <cstddef>
-#include <llvm/Support/raw_ostream.h>
 #include <utility>
 
 namespace nusantara {
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Diagnostics& diagnostics)
+OutStream& operator<<(OutStream& os, const Diagnostics& diagnostics)
 {
     for (size_t i{0}; i < diagnostics._children.size(); ++i)
     {
