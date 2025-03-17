@@ -15,7 +15,15 @@ namespace nusantara {
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const DiagnosticCategory& diagnosticCategory)
 {
-    return os << magic_enum::enum_name(diagnosticCategory);
+    switch (diagnosticCategory)
+    {
+    case DiagnosticCategory::warning:
+        return os << "\033[33m" << magic_enum::enum_name(diagnosticCategory) << "\033[0m"; // Yellow
+    case DiagnosticCategory::error:
+        return os << "\033[31m" << magic_enum::enum_name(diagnosticCategory) << "\033[0m"; // Red
+    default:
+        return os << magic_enum::enum_name(diagnosticCategory);
+    }
 }
 
 } // namespace nusantara

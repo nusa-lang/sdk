@@ -53,7 +53,7 @@ std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager, Diagnostic
 
 void Lexer::_diagnosticError(const Token& token, std::string message)
 {
-    this->_diagnostics->add({DiagnosticCategory::error, DiagnosticModule::lexer, this->_inputStream, {{token.line, token.column, token.lexeme.size()}}, std::move(message)});
+    this->_diagnostics->add({DiagnosticCategory::error, DiagnosticModule::Lexer, this->_inputStream, {{token.line, token.column, token.lexeme.size()}}, std::move(message)});
 }
 
 Tokens Lexer::_input(InputStream& inputStream)

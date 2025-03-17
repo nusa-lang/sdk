@@ -16,7 +16,7 @@ namespace nusantara {
 
 enum class DiagnosticModule
 {
-    lexer
+    Lexer
 };
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const DiagnosticModule& diagnosticModule);
