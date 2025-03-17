@@ -10,8 +10,8 @@ target_link_libraries(nusantara PRIVATE
     NusantaraLexer # Link with Nusantara Lexer static library
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    target_link_libraries(nusantara PRIVATE
-        ntdll # Link with ntdll.dll dynamic library
-    )
-endif()
+# if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+#     target_link_libraries(nusantara PRIVATE
+#         ntdll # Link with ntdll.dll dynamic library
+#     )
+# endif()
