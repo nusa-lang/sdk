@@ -8,10 +8,8 @@
  */
 
 #include "nusantara/module/module_manager.h"
-#include "nusantara/support/input_stream.h"
-#include <filesystem>
+#include "nusantara/support/char_stream.h"
 #include <queue>
-#include <string>
 #include <unordered_set>
 #include <utility>
 
@@ -19,18 +17,37 @@ namespace nusantara {
 
 ModuleManager::ModuleManager() = default;
 
-void ModuleManager::push(std::string path)
+void ModuleManager::push(const char* path)
 {
-    path = std::filesystem::weakly_canonical(path).string();
-
     if (!this->_paths.contains(path))
-    {
-        this->_queue.emplace(&this->_inputs.emplace_back(InputStream{path.c_str(), true}));
-        this->_paths.emplace(std::move(path));
-    }
+        this->_paths.emplace(this->_queue.emplace(&this->_inputs.emplace_back(CharStream::file(path)))->path());
 }
 
-InputStream& ModuleManager::front()
+void ModuleManager::push(CharStream&& charStream)
+{
+    if (charStream.path() == nullptr)
+    {
+        this->_queue.emplace(&this->_inputs.emplace_back(std::move(charStream)));
+        return;
+    }
+
+    if (!this->_paths.contains(charStream.path()))
+        this->_paths.emplace(this->_queue.emplace(&this->_inputs.emplace_back(std::move(charStream)))->path());
+}
+
+void ModuleManager::push(CharStream& charStream)
+{
+    if (charStream.path() == nullptr)
+    {
+        this->_queue.emplace(&charStream);
+        return;
+    }
+
+    if (!this->_paths.contains(charStream.path()))
+        this->_paths.emplace(this->_queue.emplace(&charStream)->path());
+}
+
+CharStream& ModuleManager::front()
 {
     return *this->_queue.front();
 }

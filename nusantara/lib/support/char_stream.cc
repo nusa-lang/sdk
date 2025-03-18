@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "nusantara/support/input_stream.h"
+#include "nusantara/support/char_stream.h"
 #include "nusantara/support/memory_mapped_file.h"
 #include <algorithm>
 #include <cstddef>
@@ -20,62 +20,64 @@
 
 namespace nusantara {
 
-InputStream::InputStream() = default;
+CharStream::CharStream() = default;
 
-InputStream::InputStream(const char* input, const bool& file)
+CharStream CharStream::cStr(const char* cstr)
 {
-    this->set(input, file);
+    CharStream cs;
+    cs.setCStr(cstr);
+    return cs;
 }
 
-void InputStream::set(const char* input, const bool& file)
+CharStream CharStream::file(const char* path)
 {
-    this->clear();
-
-    if (file)
-    {
-        this->_file = MemoryMappedFile{input};
-        this->_size = this->_file->size();
-        this->_input = this->_file->chars();
-    }
-    else
-    {
-        this->_size = std::strlen(input);
-        this->_input = input;
-    }
+    CharStream cs;
+    cs.setFile(path);
+    return cs;
 }
 
-const size_t& InputStream::size()
+void CharStream::setCStr(const char* input)
+{
+    this->_set(input, false);
+}
+
+void CharStream::setFile(const char* path)
+{
+    this->_set(path, true);
+}
+
+const size_t& CharStream::size()
 {
     return this->_size;
 }
 
-const size_t& InputStream::index()
+const size_t& CharStream::index()
 {
     return this->_index;
 }
 
-const size_t& InputStream::line()
+const size_t& CharStream::line()
 {
     return this->_line;
 }
 
-const size_t& InputStream::column()
+const size_t& CharStream::column()
 {
     return this->_column;
 }
 
-void InputStream::index(const size_t& index)
+void CharStream::index(const size_t& index)
 {
     this->_indexValidation(index);
     this->_index = index;
 }
 
-bool InputStream::end()
+bool CharStream::end()
 {
     return this->_index >= this->_size;
 }
 
-void InputStream::next()
+void CharStream::next()
 {
     if (this->end())
         throw std::out_of_range("Cannot move to the next character: index " + std::to_string(this->_index) + " exceeds max (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
@@ -97,25 +99,25 @@ void InputStream::next()
     this->_index++;
 }
 
-void InputStream::next(const size_t& count)
+void CharStream::next(const size_t& count)
 {
     for (size_t i{0}; i < count; i++)
         this->next();
 }
 
-const char& InputStream::charAt(const size_t& index)
+const char& CharStream::charAt(const size_t& index)
 {
     this->_indexValidation(index);
 
-    return this->_input[index];
+    return this->_chars[index];
 }
 
-const char& InputStream::cchar()
+const char& CharStream::cchar()
 {
     return this->charAt(this->_index);
 }
 
-bool InputStream::match(const size_t& index, const char* chars)
+bool CharStream::match(const size_t& index, const char* chars)
 {
     this->_indexValidation(index);
 
@@ -129,50 +131,45 @@ bool InputStream::match(const size_t& index, const char* chars)
         return false;
 
     for (size_t i = 0; i < size; i++)
-        if (this->_input[index + i] != chars[i])
+        if (this->_chars[index + i] != chars[i])
             return false;
 
     return true;
 }
 
-bool InputStream::cmatch(const char* chars)
+bool CharStream::cmatch(const char* chars)
 {
     return this->match(this->_index, chars);
 }
 
-void InputStream::reset()
+void CharStream::reset()
 {
     this->_index = 0;
     this->_line = 0;
     this->_column = 0;
 }
 
-void InputStream::clear()
+void CharStream::clear()
 {
     this->reset();
     this->_file = std::nullopt;
-    this->_input = nullptr;
+    this->_chars = nullptr;
 }
 
-const char* InputStream::input() const
+const char* CharStream::path() const
 {
     if (this->_file.has_value())
         return this->_file.value().path();
     else
-        return this->_input;
+        return nullptr;
 }
 
-bool InputStream::file()
-{
-    return this->_file.has_value();
-}
-
-void InputStream::saveStateTemp()
+void CharStream::saveStateTemp()
 {
     this->_stateTemp = {this->_index, this->_line, this->_column};
 }
 
-void InputStream::loadStateTemp()
+void CharStream::loadStateTemp()
 {
     if (this->_stateTemp.empty())
         throw std::runtime_error("Cannot load empty _stateTemp.");
@@ -182,18 +179,35 @@ void InputStream::loadStateTemp()
     this->_column = std::exchange(this->_stateTemp[2], 0);
 }
 
-std::string_view InputStream::lineView(const size_t& line)
+std::string_view CharStream::lineView(const size_t& line)
 {
     this->_lineValidation(line);
 
     const auto& it{this->_statesCache.find(line)};
     if (it->second.size() > 1)
-        return {this->_input + it->second.begin()->first, this->_input + (it->second.rbegin()->first + 1 == this->_size ? it->second.rbegin()->first + 1 : it->second.rbegin()->first)};
+        return {this->_chars + it->second.begin()->first, this->_chars + (it->second.rbegin()->first + 1 == this->_size ? it->second.rbegin()->first + 1 : it->second.rbegin()->first)};
     else
-        return {this->_input + it->second.begin()->first};
+        return {this->_chars + it->second.begin()->first};
 }
 
-void InputStream::_indexValidation(const size_t& index)
+void CharStream::_set(const char* input, const bool& file)
+{
+    this->clear();
+
+    if (file)
+    {
+        this->_file = MemoryMappedFile{input};
+        this->_size = this->_file->size();
+        this->_chars = this->_file->chars();
+    }
+    else
+    {
+        this->_size = std::strlen(input);
+        this->_chars = input;
+    }
+}
+
+void CharStream::_indexValidation(const size_t& index)
 {
     if (index < this->_size)
         return;
@@ -201,7 +215,7 @@ void InputStream::_indexValidation(const size_t& index)
     throw std::out_of_range("Index " + std::to_string(index) + " exceeds max (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
 }
 
-void InputStream::_lineValidation(const size_t& line)
+void CharStream::_lineValidation(const size_t& line)
 {
     if (line < this->_statesCache.size())
         return;

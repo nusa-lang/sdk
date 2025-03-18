@@ -10,9 +10,9 @@
 #ifndef NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_H
 #define NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_H
 
+#include "nusantara/support/char_stream.h"
 #include "nusantara/support/diagnostic/diagnostic_category.h"
 #include "nusantara/support/diagnostic/diagnostic_module.h"
-#include "nusantara/support/input_stream.h"
 #include "nusantara/support/out_stream.h"
 #include <cstddef>
 #include <string>
@@ -31,7 +31,7 @@ struct Diagnostic
 
     DiagnosticCategory category;
     DiagnosticModule module;
-    InputStream* inputStream;
+    CharStream* charStream;
     std::vector<Location> locations;
     std::string message;
 };

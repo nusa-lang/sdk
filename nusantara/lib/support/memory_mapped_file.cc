@@ -9,7 +9,11 @@
 
 #include "nusantara/support/memory_mapped_file.h"
 #include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
 #include <stdexcept>
+#include <string.h>
 #include <utility>
 
 #ifdef _WIN32
@@ -74,7 +78,7 @@ void MemoryMappedFile::set(const char* path)
 {
     this->clear();
 
-    this->_path = path;
+    this->_path = strdup(std::filesystem::weakly_canonical(path).c_str());
 
 #ifdef _WIN32
     constexpr DWORD FILE_SHARE_ALL = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
@@ -147,9 +151,11 @@ void MemoryMappedFile::clear()
     if (this->_fd != -1)
         close(this->_fd);
 #endif
-    this->_path = nullptr;
     this->_chars = nullptr;
     this->_size = 0;
+
+    if (this->_path != nullptr)
+        free((void*)this->_path);
 }
 
 }; // namespace nusantara

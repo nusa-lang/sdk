@@ -12,10 +12,10 @@
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/module/module_manager.h"
+#include "nusantara/support/char_stream.h"
 #include "nusantara/support/diagnostic/diagnostic_category.h"
 #include "nusantara/support/diagnostic/diagnostic_module.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
-#include "nusantara/support/input_stream.h"
 #include <array>
 #include <cctype>
 #include <cstddef>
@@ -29,19 +29,24 @@ namespace nusantara {
 
 Lexer::Lexer() = default;
 
+std::vector<Tokens> Lexer::tokenization(CharStream& charStream, ModuleManager& moduleManager, Diagnostics& diagnostics)
+{
+    moduleManager.push(charStream);
+    return this->tokenization(moduleManager, diagnostics);
+}
+
 std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager, Diagnostics& diagnostics)
 {
     this->_moduleManager = &moduleManager;
-    this->_diagnostics = &diagnostics;
 
     std::vector<Tokens> vecTokens;
 
     while (!this->_moduleManager->empty())
     {
         if (vecTokens.empty())
-            vecTokens.emplace_back(this->_input(this->_moduleManager->front()));
+            vecTokens.emplace_back(this->tokenization(this->_moduleManager->front(), diagnostics));
         else
-            vecTokens.emplace(vecTokens.end() - 1, this->_input(this->_moduleManager->front()));
+            vecTokens.emplace(vecTokens.end() - 1, this->tokenization(this->_moduleManager->front(), diagnostics));
 
         this->_moduleManager->pop();
     }
@@ -51,22 +56,28 @@ std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager, Diagnostic
     return vecTokens;
 }
 
-void Lexer::_diagnosticError(const Token& token, std::string message)
+Tokens Lexer::tokenization(CharStream& charStream, Diagnostics& diagnostics)
 {
-    this->_diagnostics->add({DiagnosticCategory::error, DiagnosticModule::Lexer, this->_inputStream, {{token.line, token.column, token.lexeme.size()}}, std::move(message)});
+    this->_diagnostics = &diagnostics;
+
+    Tokens tokens{this->tokenization(charStream)};
+
+    this->_diagnostics = nullptr;
+
+    return tokens;
 }
 
-Tokens Lexer::_input(InputStream& inputStream)
+Tokens Lexer::tokenization(CharStream& charStream)
 {
-    this->_inputStream = &inputStream;
+    this->_charStream = &charStream;
 
-    Tokens tokens{this->_inputStream, {}};
+    Tokens tokens{this->_charStream, {}};
 
     auto& elements{tokens.elements};
     elements.emplace_back(this->_nextToken());
     auto* element{&elements.back()};
 
-    while (element != nullptr && element->type == TokenType::KW_MODULE)
+    while (this->_moduleManager != nullptr && element != nullptr && element->type == TokenType::KW_MODULE)
     {
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
@@ -79,7 +90,7 @@ Tokens Lexer::_input(InputStream& inputStream)
 
         try
         {
-            this->_moduleManager->push(element->lexeme.substr(1, element->lexeme.size() - 2));
+            this->_moduleManager->push(element->lexeme.substr(1, element->lexeme.size() - 2).c_str());
         }
         catch (const std::exception& error)
         {
@@ -92,24 +103,32 @@ Tokens Lexer::_input(InputStream& inputStream)
 
     while (element != nullptr && element->type != TokenType::NEOF)
     {
-        if (element->type == TokenType::KW_MODULE)
+        if (this->_moduleManager != nullptr && element->type == TokenType::KW_MODULE)
             this->_diagnosticError(*element, "Tidak dapat memuat file di area ini.");
 
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
     }
 
-    this->_inputStream = nullptr;
+    this->_charStream = nullptr;
 
     return tokens;
 }
 
+void Lexer::_diagnosticError(const Token& token, std::string message)
+{
+    if (this->_diagnostics == nullptr)
+        return;
+
+    this->_diagnostics->add({DiagnosticCategory::error, DiagnosticModule::Lexer, this->_charStream, {{token.line, token.column, token.lexeme.size()}}, std::move(message)});
+}
+
 Token Lexer::_nextToken()
 {
-    if (this->_inputStream == nullptr)
+    if (this->_charStream == nullptr)
         return {TokenType::NEOF, "", 0, 0};
 
-    while (!this->_inputStream->end())
+    while (!this->_charStream->end())
     {
         if (this->_skipWs() || this->_skipComment())
             continue;
@@ -125,26 +144,26 @@ Token Lexer::_nextToken()
             return token;
 
         token.type = TokenType::UNKNOWN;
-        token.line = this->_inputStream->line();
-        token.column = this->_inputStream->column();
-        token.lexeme = this->_inputStream->cchar();
+        token.line = this->_charStream->line();
+        token.column = this->_charStream->column();
+        token.lexeme = this->_charStream->cchar();
         this->_diagnosticError(token, "Tidak dikenal.");
-        this->_inputStream->next();
+        this->_charStream->next();
         return token;
     }
 
-    return {TokenType::NEOF, "", this->_inputStream->line(), this->_inputStream->column()};
+    return {TokenType::NEOF, "", this->_charStream->line(), this->_charStream->column()};
 }
 
 bool Lexer::_skipWs()
 {
-    if (this->_inputStream == nullptr || this->_inputStream->end() || !std::isspace(this->_inputStream->cchar()))
+    if (this->_charStream == nullptr || this->_charStream->end() || !std::isspace(this->_charStream->cchar()))
         return false;
 
     do
     {
-        this->_inputStream->next();
-    } while (!this->_inputStream->end() && std::isspace(this->_inputStream->cchar()));
+        this->_charStream->next();
+    } while (!this->_charStream->end() && std::isspace(this->_charStream->cchar()));
 
     return true;
 }
@@ -152,34 +171,34 @@ bool Lexer::_skipWs()
 bool Lexer::_skipComment()
 {
     // Skip single-line comment "// ..."
-    if (this->_inputStream->cmatch("//"))
+    if (this->_charStream->cmatch("//"))
     {
-        this->_inputStream->next(2);
+        this->_charStream->next(2);
 
-        while (!this->_inputStream->end() && this->_inputStream->cchar() != '\n')
-            this->_inputStream->next();
+        while (!this->_charStream->end() && this->_charStream->cchar() != '\n')
+            this->_charStream->next();
 
         return true;
     }
 
-    this->_inputStream->saveStateTemp();
+    this->_charStream->saveStateTemp();
 
     // Skip multi-line comment "/* ... */"
-    if (this->_inputStream->cmatch("/*"))
+    if (this->_charStream->cmatch("/*"))
     {
-        this->_inputStream->next(2);
+        this->_charStream->next(2);
 
-        while (!this->_inputStream->end())
+        while (!this->_charStream->end())
         {
-            if (this->_inputStream->cmatch("*/"))
+            if (this->_charStream->cmatch("*/"))
             {
-                this->_inputStream->next(2);
+                this->_charStream->next(2);
                 return true;
             }
-            this->_inputStream->next();
+            this->_charStream->next();
         }
 
-        this->_inputStream->loadStateTemp();
+        this->_charStream->loadStateTemp();
         return false;
     }
 
@@ -191,10 +210,10 @@ bool Lexer::_makeToken(Token& token)
     static constexpr std::array<std::pair<TokenType, std::pair<const char*, bool>>, 12> tokenTypeWithPatterns{{
         // Parenthesis
         {TokenType::PAREN_OPEN, {"(", false}},
+        {TokenType::PAREN_CLOSE, {")", false}},
 
         // Separators
-        {TokenType::PAREN_CLOSE, {")", false}},
-        {TokenType::PAREN_CLOSE, {",", false}},
+        {TokenType::COMMA, {",", false}},
 
         // Data types
         {TokenType::KW_DT_I1, {"b1", true}},
@@ -218,17 +237,17 @@ bool Lexer::_makeToken(Token& token)
         if (pattern == nullptr)
             continue;
 
-        if (!this->_inputStream->cmatch(pattern))
+        if (!this->_charStream->cmatch(pattern))
             continue;
 
         const size_t size = std::strlen(pattern);
 
         if (strict)
         {
-            size_t futureIndex = this->_inputStream->index() + size;
-            if (futureIndex < this->_inputStream->size())
+            size_t futureIndex = this->_charStream->index() + size;
+            if (futureIndex < this->_charStream->size())
             {
-                char futureChar = this->_inputStream->charAt(futureIndex);
+                char futureChar = this->_charStream->charAt(futureIndex);
                 if (std::isalnum(futureChar))
                     continue;
             }
@@ -236,10 +255,10 @@ bool Lexer::_makeToken(Token& token)
 
         token.type = type;
         token.lexeme = pattern;
-        token.line = this->_inputStream->line();
-        token.column = this->_inputStream->column();
+        token.line = this->_charStream->line();
+        token.column = this->_charStream->column();
 
-        this->_inputStream->next(size);
+        this->_charStream->next(size);
 
         return true;
     }
@@ -249,59 +268,59 @@ bool Lexer::_makeToken(Token& token)
 
 bool Lexer::_makeTokenLitStr(Token& token)
 {
-    if (this->_inputStream->end())
+    if (this->_charStream->end())
         return false;
 
-    this->_inputStream->saveStateTemp();
+    this->_charStream->saveStateTemp();
 
-    char quote{this->_inputStream->cchar()};
+    char quote{this->_charStream->cchar()};
     if (quote != '"' && quote != '\'')
         return false;
 
     token.type = TokenType::LIT_STR;
     token.lexeme = quote;
-    token.line = this->_inputStream->line();
-    token.column = this->_inputStream->column();
+    token.line = this->_charStream->line();
+    token.column = this->_charStream->column();
 
-    this->_inputStream->next();
+    this->_charStream->next();
 
-    while (!this->_inputStream->end())
+    while (!this->_charStream->end())
     {
-        char c{this->_inputStream->cchar()};
+        char c{this->_charStream->cchar()};
 
         if (c == quote)
         {
             token.lexeme += c;
-            this->_inputStream->next();
+            this->_charStream->next();
             return true;
         }
 
         token.lexeme += c;
-        this->_inputStream->next();
+        this->_charStream->next();
     }
 
-    this->_inputStream->loadStateTemp();
+    this->_charStream->loadStateTemp();
     return false;
 }
 
 bool Lexer::_makeTokenLitNum(Token& token)
 {
-    if (this->_inputStream->end())
+    if (this->_charStream->end())
         return false;
 
-    this->_inputStream->saveStateTemp();
+    this->_charStream->saveStateTemp();
 
     bool hasDot{false};
     bool hasDigit{false};
 
     token.type = TokenType::LIT_NUM;
     token.lexeme = "";
-    token.line = this->_inputStream->line();
-    token.column = this->_inputStream->column();
+    token.line = this->_charStream->line();
+    token.column = this->_charStream->column();
 
-    while (!this->_inputStream->end())
+    while (!this->_charStream->end())
     {
-        char c{this->_inputStream->cchar()};
+        char c{this->_charStream->cchar()};
 
         if (std::isdigit(c))
         {
@@ -318,13 +337,13 @@ bool Lexer::_makeTokenLitNum(Token& token)
             break;
         }
 
-        this->_inputStream->next();
+        this->_charStream->next();
     }
 
     // If there is only a point without numbers, invalid
     if (!hasDigit)
     {
-        this->_inputStream->loadStateTemp();
+        this->_charStream->loadStateTemp();
         return false;
     }
 
@@ -333,10 +352,10 @@ bool Lexer::_makeTokenLitNum(Token& token)
 
 bool Lexer::_makeTokenId(Token& token)
 {
-    if (this->_inputStream->end())
+    if (this->_charStream->end())
         return false;
 
-    char c{this->_inputStream->cchar()};
+    char c{this->_charStream->cchar()};
 
     // Identifier must begin with letters or underscore
     if (!std::isalpha(c) && c != '_')
@@ -344,23 +363,23 @@ bool Lexer::_makeTokenId(Token& token)
 
     token.type = TokenType::ID;
     token.lexeme.clear();
-    token.line = this->_inputStream->line();
-    token.column = this->_inputStream->column();
+    token.line = this->_charStream->line();
+    token.column = this->_charStream->column();
 
     // Add the first character
     token.lexeme += c;
-    this->_inputStream->next();
+    this->_charStream->next();
 
     // Loop to take the remaining identifier (letters, numbers, or underscore)
-    while (!this->_inputStream->end())
+    while (!this->_charStream->end())
     {
-        c = this->_inputStream->cchar();
+        c = this->_charStream->cchar();
 
         if (!std::isalnum(c) && c != '_')
             break;
 
         token.lexeme += c;
-        this->_inputStream->next();
+        this->_charStream->next();
     }
 
     return true;

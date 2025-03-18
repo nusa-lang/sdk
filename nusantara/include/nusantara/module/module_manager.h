@@ -10,10 +10,9 @@
 #ifndef NUSANTARA_MODULE_MODULE_MANAGER_H
 #define NUSANTARA_MODULE_MODULE_MANAGER_H
 
-#include "nusantara/support/input_stream.h"
+#include "nusantara/support/char_stream.h"
 #include <list>
 #include <queue>
-#include <string>
 #include <unordered_set>
 
 namespace nusantara {
@@ -23,9 +22,11 @@ class ModuleManager
 public:
     ModuleManager();
 
-    void push(std::string path);
+    void push(const char* path);
+    void push(CharStream&& charStream);
+    void push(CharStream& charStream);
 
-    InputStream& front();
+    CharStream& front();
     void pop();
 
     bool empty();
@@ -33,9 +34,9 @@ public:
     void reset();
 
 private:
-    std::queue<InputStream*> _queue;
-    std::unordered_set<std::string> _paths;
-    std::list<InputStream> _inputs;
+    std::queue<CharStream*> _queue;
+    std::unordered_set<const char*> _paths;
+    std::list<CharStream> _inputs;
 };
 
 } // namespace nusantara

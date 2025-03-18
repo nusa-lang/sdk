@@ -16,7 +16,7 @@ namespace nusantara {
 
 OutStream& operator<<(OutStream& os, const Tokens& tokens)
 {
-    std::string_view prefix = tokens.inputStream != nullptr && tokens.inputStream->file() ? tokens.inputStream->input() : std::string_view{};
+    std::string_view prefix = tokens.charStream != nullptr && tokens.charStream->path() != nullptr ? tokens.charStream->path() : std::string_view{};
     bool hasPrefix = !prefix.empty();
 
     auto it = tokens.elements.begin();

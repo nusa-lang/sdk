@@ -7,8 +7,8 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_SUPPORT_INPUT_STREAM_H
-#define NUSANTARA_SUPPORT_INPUT_STREAM_H
+#ifndef NUSANTARA_SUPPORT_CHAR_STREAM_H
+#define NUSANTARA_SUPPORT_CHAR_STREAM_H
 
 #include "nusantara/support/memory_mapped_file.h"
 #include <array>
@@ -20,14 +20,16 @@
 
 namespace nusantara {
 
-class InputStream
+class CharStream
 {
 public:
-    InputStream();
+    CharStream();
 
-    InputStream(const char* input, const bool& file = false);
+    static CharStream cStr(const char* cstr);
+    static CharStream file(const char* path);
 
-    void set(const char* input, const bool& file = false);
+    void setCStr(const char* cStr);
+    void setFile(const char* path);
 
     const size_t& size();
     const size_t& index();
@@ -48,8 +50,7 @@ public:
     void reset();
     void clear();
 
-    const char* input() const;
-    bool file();
+    const char* path() const;
 
     void saveStateTemp();
     void loadStateTemp();
@@ -58,7 +59,7 @@ public:
 
 private:
     std::optional<MemoryMappedFile> _file{std::nullopt};
-    const char* _input{nullptr};
+    const char* _chars{nullptr};
 
     size_t _size{0};
 
@@ -68,6 +69,8 @@ private:
     size_t _index{0};
     size_t _line{0};
     size_t _column{0};
+
+    void _set(const char* input, const bool& file);
 
     void _indexValidation(const size_t& index);
     void _lineValidation(const size_t& line);

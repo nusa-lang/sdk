@@ -49,7 +49,7 @@ void Diagnostics::add(Diagnostic diagnostic)
     }
 
     auto& child = _children.back();
-    if (child.category == diagnostic.category && child.inputStream && diagnostic.inputStream && child.inputStream->file() && diagnostic.inputStream->file() && child.inputStream->input() == diagnostic.inputStream->input() && child.module == diagnostic.module && child.message == diagnostic.message)
+    if (child.category == diagnostic.category && child.charStream && diagnostic.charStream && ((child.charStream->path() != nullptr && diagnostic.charStream->path() != nullptr && child.charStream->path() == diagnostic.charStream->path()) || child.charStream->path() == nullptr && diagnostic.charStream->path() == nullptr) && child.module == diagnostic.module && child.message == diagnostic.message)
     {
 
         for (auto& location : diagnostic.locations)
