@@ -1,5 +1,6 @@
-use 'examples/comments.n'
-use 'examples/empty.n'
-use 'examples/print.n'
+use
+'examples/comments.n' 
+'examples/empty.n' 
+'examples/print.n'
 
 print(20)

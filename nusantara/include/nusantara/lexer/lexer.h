@@ -25,14 +25,14 @@ class Lexer
 public:
     Lexer();
 
-    std::vector<Tokens> tokenization(CharStream& charStream, UseManager& moduleManager, Diagnostics& diagnostics);
-    std::vector<Tokens> tokenization(UseManager& moduleManager, Diagnostics& diagnostics);
+    std::vector<Tokens> tokenization(CharStream& charStream, UseManager& useManager, Diagnostics& diagnostics);
+    std::vector<Tokens> tokenization(UseManager& useManager, Diagnostics& diagnostics);
     Tokens tokenization(CharStream& charStream, Diagnostics& diagnostics);
     Tokens tokenization(CharStream& charStream);
 
 private:
     Diagnostics* _diagnostics{nullptr};
-    UseManager* _moduleManager{nullptr};
+    UseManager* _useManager{nullptr};
     CharStream* _charStream{nullptr};
 
     void _diagnosticError(const Token& token, std::string message);

@@ -29,29 +29,29 @@ namespace nusantara {
 
 Lexer::Lexer() = default;
 
-std::vector<Tokens> Lexer::tokenization(CharStream& charStream, UseManager& moduleManager, Diagnostics& diagnostics)
+std::vector<Tokens> Lexer::tokenization(CharStream& charStream, UseManager& useManager, Diagnostics& diagnostics)
 {
-    moduleManager.push(charStream);
-    return this->tokenization(moduleManager, diagnostics);
+    useManager.push(charStream);
+    return this->tokenization(useManager, diagnostics);
 }
 
-std::vector<Tokens> Lexer::tokenization(UseManager& moduleManager, Diagnostics& diagnostics)
+std::vector<Tokens> Lexer::tokenization(UseManager& useManager, Diagnostics& diagnostics)
 {
-    this->_moduleManager = &moduleManager;
+    this->_useManager = &useManager;
 
     std::vector<Tokens> vecTokens;
 
-    while (!this->_moduleManager->empty())
+    while (!this->_useManager->empty())
     {
         if (vecTokens.empty())
-            vecTokens.emplace_back(this->tokenization(this->_moduleManager->front(), diagnostics));
+            vecTokens.emplace_back(this->tokenization(this->_useManager->front(), diagnostics));
         else
-            vecTokens.emplace(vecTokens.end() - 1, this->tokenization(this->_moduleManager->front(), diagnostics));
+            vecTokens.emplace(vecTokens.end() - 1, this->tokenization(this->_useManager->front(), diagnostics));
 
-        this->_moduleManager->pop();
+        this->_useManager->pop();
     }
 
-    this->_moduleManager = nullptr;
+    this->_useManager = nullptr;
 
     return vecTokens;
 }
@@ -77,8 +77,10 @@ Tokens Lexer::tokenization(CharStream& charStream)
     elements.emplace_back(this->_nextToken());
     auto* element{&elements.back()};
 
-    while (this->_moduleManager != nullptr && element != nullptr && element->type == TokenType::KW_USE)
+    while (this->_useManager != nullptr && element != nullptr && element->type == TokenType::KW_USE)
     {
+        elements.pop_back();
+
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
 
@@ -88,25 +90,27 @@ Tokens Lexer::tokenization(CharStream& charStream)
             continue;
         }
 
-        try
+        while (element->type == TokenType::LIT_STR)
         {
-            this->_moduleManager->push(element->lexeme.substr(1, element->lexeme.size() - 2).c_str());
-        }
-        catch (const std::exception& error)
-        {
-            this->_diagnosticError(*element, error.what());
-        }
+            try
+            {
+                this->_useManager->push(element->lexeme.substr(1, element->lexeme.size() - 2).c_str());
+            }
+            catch (const std::exception& error)
+            {
+                this->_diagnosticError(*element, error.what());
+            }
 
-        elements.pop_back();
-        elements.pop_back();
+            elements.pop_back();
 
-        elements.emplace_back(this->_nextToken());
-        element = &elements.back();
+            elements.emplace_back(this->_nextToken());
+            element = &elements.back();
+        }
     }
 
     while (element != nullptr && element->type != TokenType::NEOF)
     {
-        if (this->_moduleManager != nullptr && element->type == TokenType::KW_USE)
+        if (this->_useManager != nullptr && element->type == TokenType::KW_USE)
             this->_diagnosticError(*element, "Cannot use files in this area.");
 
         elements.emplace_back(this->_nextToken());
