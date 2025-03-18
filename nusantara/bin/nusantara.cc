@@ -9,7 +9,7 @@
 
 #include "nusantara/lexer/lexer.h"
 #include "nusantara/lexer/token/tokens.h"
-#include "nusantara/module/module_manager.h"
+#include "nusantara/lexer/use_manager.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
 #include "nusantara/support/out_stream.h"
 #include <cstdlib>
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     {
         outs() << "Nusantara Programming Language (Development)\n\n";
 
-        ModuleManager mm;
+        UseManager mm;
 
         mm.push("examples/main.n");
 

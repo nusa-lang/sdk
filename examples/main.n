@@ -1,5 +1,5 @@
-muat 'examples/comments.n'
-muat 'examples/cetak.n'
-muat 'examples/empty.n'
+use 'examples/comments.n'
+use 'examples/empty.n'
+use 'examples/print.n'
 
-cetak(20)
+print(20)

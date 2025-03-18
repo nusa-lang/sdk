@@ -11,7 +11,7 @@
 #include "nusantara/lexer/token/token.h"
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
-#include "nusantara/module/module_manager.h"
+#include "nusantara/lexer/use_manager.h"
 #include "nusantara/support/char_stream.h"
 #include "nusantara/support/diagnostic/diagnostic_category.h"
 #include "nusantara/support/diagnostic/diagnostic_module.h"
@@ -29,13 +29,13 @@ namespace nusantara {
 
 Lexer::Lexer() = default;
 
-std::vector<Tokens> Lexer::tokenization(CharStream& charStream, ModuleManager& moduleManager, Diagnostics& diagnostics)
+std::vector<Tokens> Lexer::tokenization(CharStream& charStream, UseManager& moduleManager, Diagnostics& diagnostics)
 {
     moduleManager.push(charStream);
     return this->tokenization(moduleManager, diagnostics);
 }
 
-std::vector<Tokens> Lexer::tokenization(ModuleManager& moduleManager, Diagnostics& diagnostics)
+std::vector<Tokens> Lexer::tokenization(UseManager& moduleManager, Diagnostics& diagnostics)
 {
     this->_moduleManager = &moduleManager;
 
@@ -77,14 +77,14 @@ Tokens Lexer::tokenization(CharStream& charStream)
     elements.emplace_back(this->_nextToken());
     auto* element{&elements.back()};
 
-    while (this->_moduleManager != nullptr && element != nullptr && element->type == TokenType::KW_MODULE)
+    while (this->_moduleManager != nullptr && element != nullptr && element->type == TokenType::KW_USE)
     {
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
 
         if (element->type != TokenType::LIT_STR)
         {
-            this->_diagnosticError(*element, "Tidak bisa dimuat.");
+            this->_diagnosticError(*(element - 1), "Can not be used.");
             continue;
         }
 
@@ -97,14 +97,17 @@ Tokens Lexer::tokenization(CharStream& charStream)
             this->_diagnosticError(*element, error.what());
         }
 
+        elements.pop_back();
+        elements.pop_back();
+
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
     }
 
     while (element != nullptr && element->type != TokenType::NEOF)
     {
-        if (this->_moduleManager != nullptr && element->type == TokenType::KW_MODULE)
-            this->_diagnosticError(*element, "Tidak dapat memuat file di area ini.");
+        if (this->_moduleManager != nullptr && element->type == TokenType::KW_USE)
+            this->_diagnosticError(*element, "Cannot use files in this area.");
 
         elements.emplace_back(this->_nextToken());
         element = &elements.back();
@@ -147,7 +150,7 @@ Token Lexer::_nextToken()
         token.line = this->_charStream->line();
         token.column = this->_charStream->column();
         token.lexeme = this->_charStream->cchar();
-        this->_diagnosticError(token, "Tidak dikenal.");
+        this->_diagnosticError(token, "Unknown.");
         this->_charStream->next();
         return token;
     }
@@ -216,18 +219,18 @@ bool Lexer::_makeToken(Token& token)
         {TokenType::COMMA, {",", false}},
 
         // Data types
-        {TokenType::KW_DT_I1, {"b1", true}},
-        {TokenType::KW_DT_I8, {"b8", true}},
-        {TokenType::KW_DT_I16, {"b16", true}},
-        {TokenType::KW_DT_I32, {"b32", true}},
-        {TokenType::KW_DT_I64, {"b64", true}},
+        {TokenType::KW_DT_I1, {"i1", true}},
+        {TokenType::KW_DT_I8, {"i8", true}},
+        {TokenType::KW_DT_I16, {"i16", true}},
+        {TokenType::KW_DT_I32, {"i32", true}},
+        {TokenType::KW_DT_I64, {"i64", true}},
 
-        {TokenType::KW_DT_F32, {"d32", true}},
-        {TokenType::KW_DT_F64, {"d64", true}},
+        {TokenType::KW_DT_F32, {"f32", true}},
+        {TokenType::KW_DT_F64, {"f64", true}},
 
         // Keywords
-        {TokenType::KW_FUNC, {"f", true}},
-        {TokenType::KW_MODULE, {"muat", true}},
+        {TokenType::KW_F, {"f", true}},
+        {TokenType::KW_USE, {"use", true}},
     }};
 
     for (const auto& [type, patternPair] : tokenTypeWithPatterns)

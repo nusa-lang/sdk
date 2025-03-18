@@ -84,7 +84,7 @@ void MemoryMappedFile::set(const char* path)
     constexpr DWORD FILE_SHARE_ALL = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
     this->_file = CreateFileA(path, GENERIC_READ, FILE_SHARE_ALL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (this->_file == INVALID_HANDLE_VALUE)
-        throw std::runtime_error("Gagal membuka berkas.");
+        throw std::runtime_error("Failed to open file.");
 
     LARGE_INTEGER fileSize;
     if (!GetFileSizeEx(this->_file, &fileSize) || fileSize.QuadPart == 0)
@@ -92,27 +92,27 @@ void MemoryMappedFile::set(const char* path)
 
     this->_mapping = CreateFileMapping(this->_file, NULL, PAGE_READONLY, 0, 0, NULL);
     if (!this->_mapping)
-        throw std::runtime_error("Gagal membuat pemetaan berkas.");
+        throw std::runtime_error("Failed to create file mapping.");
 
     this->_chars = static_cast<char*>(MapViewOfFile(this->_mapping, FILE_MAP_READ, 0, 0, 0));
     if (!this->_chars)
-        throw std::runtime_error("Gagal memetakan tampilan berkas.");
+        throw std::runtime_error("Failed to map file view.");
 
     this->_size = static_cast<size_t>(fileSize.QuadPart);
 #else
     this->_fd = open(path, O_RDONLY);
     if (this->_fd == -1)
-        throw std::runtime_error("Gagal membuka berkas.");
+        throw std::runtime_error("Failed to open file.");
 
     struct stat fileStat{};
     if (fstat(this->_fd, &fileStat) == -1)
-        throw std::runtime_error("Gagal mendapatkan ukuran berkas.");
+        throw std::runtime_error("Failed to get file size.");
     if ((this->_size = fileStat.st_size) == 0)
         return;
 
     this->_chars = static_cast<char*>(mmap(nullptr, this->_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, this->_fd, 0));
     if (this->_chars == MAP_FAILED)
-        throw std::runtime_error("Gagal melakukan pemetaan memori.");
+        throw std::runtime_error("Failed to perform memory mapping.");
 
     if (this->_size > 64 * 1024) // If file is larger than 64KB, use sequential access hint
         madvise(this->_chars, this->_size, MADV_SEQUENTIAL);

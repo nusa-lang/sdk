@@ -80,7 +80,7 @@ bool CharStream::end()
 void CharStream::next()
 {
     if (this->end())
-        throw std::out_of_range("Tidak dapat berpindah ke karakter berikutnya: indeks " + std::to_string(this->_index) + " melebihi batas maksimum (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
+        throw std::out_of_range("Cannot move to next character: index " + std::to_string(this->_index) + " exceeds max limit (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
 
     if (!this->_statesCache.contains(this->_line))
         this->_statesCache[this->_line] = {};
@@ -172,7 +172,7 @@ void CharStream::saveStateTemp()
 void CharStream::loadStateTemp()
 {
     if (this->_stateTemp.empty())
-        throw std::runtime_error("Tidak dapat memuat _stateTemp yang kosong.");
+        throw std::runtime_error("Cannot load empty _stateTemp.");
 
     this->_index = std::exchange(this->_stateTemp[0], 0);
     this->_line = std::exchange(this->_stateTemp[1], 0);
@@ -212,7 +212,7 @@ void CharStream::_indexValidation(const size_t& index)
     if (index < this->_size)
         return;
 
-    throw std::out_of_range("Indeks " + std::to_string(index) + " melebihi batas maksimum (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
+    throw std::out_of_range("Index " + std::to_string(index) + " exceeds max limit (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
 }
 
 void CharStream::_lineValidation(const size_t& line)
@@ -220,7 +220,7 @@ void CharStream::_lineValidation(const size_t& line)
     if (line < this->_statesCache.size())
         return;
 
-    throw std::out_of_range("Baris " + std::to_string(line) + " melebihi batas maksimum (" + std::to_string(std::min((size_t)0, this->_statesCache.size() - 1)) + ").");
+    throw std::out_of_range("Line " + std::to_string(line) + " exceeds max limit (" + std::to_string(std::min((size_t)0, this->_statesCache.size() - 1)) + ").");
 }
 
 } // namespace nusantara

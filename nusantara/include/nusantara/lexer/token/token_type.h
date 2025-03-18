@@ -24,18 +24,18 @@ enum class TokenType
     COMMA, // pattern: ','
 
     // Data types
-    KW_DT_I1,  // pattern: 'b1'
-    KW_DT_I8,  // pattern: 'b8'
-    KW_DT_I16, // pattern: 'b16'
-    KW_DT_I32, // pattern: 'b32'
-    KW_DT_I64, // pattern: 'b64'
+    KW_DT_I1,  // pattern: 'i1'
+    KW_DT_I8,  // pattern: 'i8'
+    KW_DT_I16, // pattern: 'i16'
+    KW_DT_I32, // pattern: 'i32'
+    KW_DT_I64, // pattern: 'i64'
 
-    KW_DT_F32, // pattern: 'd32'
-    KW_DT_F64, // pattern: 'd64'
+    KW_DT_F32, // pattern: 'f32'
+    KW_DT_F64, // pattern: 'f64'
 
     // Keywords
-    KW_FUNC,   // pattern: 'f'
-    KW_MODULE, // pattern: 'muat'
+    KW_F,   // pattern: 'f'
+    KW_USE, // pattern: 'use'
 
     // Literals
     LIT_STR, // pattern: ('\'' ~'\''* '\'' | '"' ~'"'* '"')

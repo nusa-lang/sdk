@@ -7,8 +7,8 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_MODULE_MODULE_MANAGER_H
-#define NUSANTARA_MODULE_MODULE_MANAGER_H
+#ifndef NUSANTARA_LEXER_USE_MANAGER_H
+#define NUSANTARA_LEXER_USE_MANAGER_H
 
 #include "nusantara/support/char_stream.h"
 #include <list>
@@ -17,10 +17,10 @@
 
 namespace nusantara {
 
-class ModuleManager
+class UseManager
 {
 public:
-    ModuleManager();
+    UseManager();
 
     void push(const char* path);
     void push(CharStream&& charStream);

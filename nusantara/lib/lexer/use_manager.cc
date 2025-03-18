@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "nusantara/module/module_manager.h"
+#include "nusantara/lexer/use_manager.h"
 #include "nusantara/support/char_stream.h"
 #include <queue>
 #include <unordered_set>
@@ -15,15 +15,15 @@
 
 namespace nusantara {
 
-ModuleManager::ModuleManager() = default;
+UseManager::UseManager() = default;
 
-void ModuleManager::push(const char* path)
+void UseManager::push(const char* path)
 {
     if (!this->_paths.contains(path))
         this->_paths.emplace(this->_queue.emplace(&this->_inputs.emplace_back(CharStream::file(path)))->path());
 }
 
-void ModuleManager::push(CharStream&& charStream)
+void UseManager::push(CharStream&& charStream)
 {
     if (charStream.path() == nullptr)
     {
@@ -35,7 +35,7 @@ void ModuleManager::push(CharStream&& charStream)
         this->_paths.emplace(this->_queue.emplace(&this->_inputs.emplace_back(std::move(charStream)))->path());
 }
 
-void ModuleManager::push(CharStream& charStream)
+void UseManager::push(CharStream& charStream)
 {
     if (charStream.path() == nullptr)
     {
@@ -47,22 +47,22 @@ void ModuleManager::push(CharStream& charStream)
         this->_paths.emplace(this->_queue.emplace(&charStream)->path());
 }
 
-CharStream& ModuleManager::front()
+CharStream& UseManager::front()
 {
     return *this->_queue.front();
 }
 
-void ModuleManager::pop()
+void UseManager::pop()
 {
     this->_queue.pop();
 }
 
-bool ModuleManager::empty()
+bool UseManager::empty()
 {
     return this->_queue.empty();
 }
 
-void ModuleManager::reset()
+void UseManager::reset()
 {
     while (!this->_queue.empty())
         this->_queue.pop();
