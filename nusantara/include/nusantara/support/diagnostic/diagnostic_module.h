@@ -16,7 +16,8 @@ namespace nusantara {
 
 enum class DiagnosticModule
 {
-    Lexer
+    Lexer,
+    Parser
 };
 
 OutStream& operator<<(OutStream& os, const DiagnosticModule& diagnosticModule);

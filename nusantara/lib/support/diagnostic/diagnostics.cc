@@ -13,6 +13,7 @@
 #include "nusantara/support/out_stream.h"
 #include <algorithm>
 #include <cstddef>
+#include <cstdlib>
 #include <utility>
 
 namespace nusantara {
@@ -49,9 +50,8 @@ void Diagnostics::add(Diagnostic diagnostic)
     }
 
     auto& child = _children.back();
-    if (child.category == diagnostic.category && child.charStream && diagnostic.charStream && ((child.charStream->path() != nullptr && diagnostic.charStream->path() != nullptr && child.charStream->path() == diagnostic.charStream->path()) || child.charStream->path() == nullptr && diagnostic.charStream->path() == nullptr) && child.module == diagnostic.module && child.message == diagnostic.message)
+    if (child.category == diagnostic.category && child.charStream && diagnostic.charStream && ((child.charStream->path() && diagnostic.charStream->path() && child.charStream->path() == diagnostic.charStream->path()) || (!child.charStream->path() && !diagnostic.charStream->path())) && child.module == diagnostic.module && child.message == diagnostic.message)
     {
-
         for (auto& location : diagnostic.locations)
         {
             if (child.locations.empty())
@@ -61,16 +61,23 @@ void Diagnostics::add(Diagnostic diagnostic)
             }
 
             auto& childEndLoc = child.locations.back();
-            if (childEndLoc.line == location.line)
+            int lineDiff = std::abs(static_cast<int>(childEndLoc.line - location.line));
+
+            if (childEndLoc.line == location.line) // Same line
             {
                 int newStart = std::min(childEndLoc.column, location.column);
                 int newEnd = std::max(childEndLoc.column + childEndLoc.size, location.column + location.size);
                 childEndLoc.column = newStart;
                 childEndLoc.size = newEnd - newStart;
             }
-            else
+            else if (lineDiff == 1) // Only 1 line difference
             {
                 child.locations.emplace_back(std::move(location));
+            }
+            else // Spacing more than 1 line, not merged
+            {
+                _children.emplace_back(std::move(diagnostic));
+                return;
             }
         }
         return;
@@ -79,9 +86,21 @@ void Diagnostics::add(Diagnostic diagnostic)
     _children.emplace_back(std::move(diagnostic));
 }
 
+bool Diagnostics::empty()
+{
+    return this->_children.empty();
+}
+
 bool Diagnostics::hasError()
 {
     return this->_error > 0;
+}
+
+void Diagnostics::clear()
+{
+    this->_children.clear();
+    this->_error = 0;
+    this->_warning = 0;
 }
 
 } // namespace nusantara

@@ -10,6 +10,7 @@
 #include "nusantara/lexer/lexer.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/lexer/use_manager.h"
+#include "nusantara/parser/parser.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
 #include "nusantara/support/out_stream.h"
 #include <cstdlib>
@@ -31,16 +32,29 @@ int main(int argc, char* argv[])
         Lexer lexer;
 
         Diagnostics diagnostics;
-        std::vector<Tokens> vectokens{lexer.tokenization(mm, diagnostics)};
+        std::vector<Tokens> vecTokens{lexer.tokenization(mm, diagnostics)};
 
-        outs() << diagnostics;
+        if (!diagnostics.empty())
+            outs() << diagnostics;
+
         if (diagnostics.hasError())
             return -1;
 
-        for (const auto& tokens : vectokens)
-            outs() << tokens << "\n";
+        // for (const auto& tokens : vecTokens)
+        //     outs() << tokens << "\n";
 
-        outs() << "\nProgram completed.\n";
+        diagnostics.clear();
+
+        Parser parser;
+        parser.parse(vecTokens, diagnostics);
+
+        if (!diagnostics.empty())
+            outs() << diagnostics;
+
+        if (diagnostics.hasError())
+            return -1;
+
+        outs() << "Program completed.\n";
     }
     catch (const std::exception& error)
     {

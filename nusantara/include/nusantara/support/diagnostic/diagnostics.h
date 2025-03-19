@@ -24,7 +24,10 @@ public:
 
     void add(Diagnostic diagnostic);
 
+    bool empty();
     bool hasError();
+
+    void clear();
 
 private:
     std::vector<Diagnostic> _children;

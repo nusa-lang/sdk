@@ -7,6 +7,7 @@ add_executable(nusantara
 target_link_libraries(nusantara PRIVATE
     NusantaraSupport # Link with Nusantara Support static library
     NusantaraLexer # Link with Nusantara Lexer static library
+    NusantaraParser # Link with Nusantara Parser static library
 )
 
 # if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
