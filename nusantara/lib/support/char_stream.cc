@@ -80,7 +80,7 @@ bool CharStream::end()
 void CharStream::next()
 {
     if (this->end())
-        throw std::out_of_range("Cannot move to next character: index " + std::to_string(this->_index) + " exceeds max limit (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
+        throw std::out_of_range("Cannot move to next character: index " + std::to_string(this->_index) + " is out of bounds (max: " + std::to_string(std::max((size_t)0, this->_size) - 1) + ").");
 
     if (!this->_statesCache.contains(this->_line))
         this->_statesCache[this->_line] = {};
@@ -212,7 +212,7 @@ void CharStream::_indexValidation(const size_t& index)
     if (index < this->_size)
         return;
 
-    throw std::out_of_range("Index " + std::to_string(index) + " exceeds max limit (" + std::to_string(std::min((size_t)0, this->_size - 1)) + ").");
+    throw std::out_of_range("Index " + std::to_string(index) + " is out of bounds (max: " + std::to_string(std::max((size_t)0, this->_size) - 1) + ").");
 }
 
 void CharStream::_lineValidation(const size_t& line)
@@ -220,7 +220,7 @@ void CharStream::_lineValidation(const size_t& line)
     if (line < this->_statesCache.size())
         return;
 
-    throw std::out_of_range("Line " + std::to_string(line) + " exceeds max limit (" + std::to_string(std::min((size_t)0, this->_statesCache.size() - 1)) + ").");
+    throw std::out_of_range("Line " + std::to_string(line) + " is out of bounds (max: " + std::to_string(std::max((size_t)0, this->_statesCache.size()) - 1) + ").");
 }
 
 } // namespace nusantara

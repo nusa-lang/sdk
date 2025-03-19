@@ -154,7 +154,7 @@ Token Lexer::_nextToken()
         token.line = this->_charStream->line();
         token.column = this->_charStream->column();
         token.lexeme = this->_charStream->cchar();
-        this->_diagnosticError(token, "Unknown.");
+        this->_diagnosticError(token, "Unexpected character.");
         this->_charStream->next();
         return token;
     }
