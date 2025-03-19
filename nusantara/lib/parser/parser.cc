@@ -8,6 +8,12 @@
  */
 
 #include "nusantara/parser/parser.h"
+#include "nusantara/ast/ast.h"
+#include "nusantara/ast/ast_call_function.h"
+#include "nusantara/ast/ast_function.h"
+#include "nusantara/ast/ast_literal.h"
+#include "nusantara/ast/ast_variable.h"
+#include "nusantara/ast/asts.h"
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/support/char_stream.h"
@@ -15,7 +21,7 @@
 #include "nusantara/support/diagnostic/diagnostic_category.h"
 #include "nusantara/support/diagnostic/diagnostic_module.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
-#include <magic_enum.hpp>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -31,16 +37,27 @@ std::unordered_set<TokenType> Parser::_dataTypes{
 
 Parser::Parser() = default;
 
-void Parser::parse(std::vector<Tokens>& vecTokens, Diagnostics& diagnostics)
+std::vector<ASTS> Parser::parse(std::vector<Tokens>& vecTokens, Diagnostics& diagnostics)
 {
+    std::vector<ASTS> vecASTS;
+
     for (auto& tokens : vecTokens)
-        this->parse(tokens, diagnostics);
+    {
+        ASTS asts{this->parse(tokens, diagnostics)};
+        if (!asts.elements.empty())
+            vecASTS.emplace_back(std::move(asts));
+    }
+
+    return vecASTS;
 }
 
-void Parser::parse(Tokens& tokens, Diagnostics& diagnostics)
+ASTS Parser::parse(Tokens& tokens, Diagnostics& diagnostics)
 {
+    ASTS asts;
+    asts.charStream = tokens.charStream;
+
     if (tokens.elements.empty())
-        return;
+        return asts;
 
     this->_diagnostics = &diagnostics;
     this->_tokens = &tokens;
@@ -54,9 +71,9 @@ void Parser::parse(Tokens& tokens, Diagnostics& diagnostics)
         try
         {
             if (this->_is(TokenType::KW_F))
-                this->_parseFunction();
+                asts.elements.emplace_back(this->_parseFunction());
             else if (this->_is({TokenType::LIT_NUM, TokenType::LIT_STR, TokenType::ID}))
-                this->_parseExpression();
+                asts.elements.emplace_back(this->_parsePrimaryExpression());
             else
                 throw this->_diagnosticError("Unexpected syntax.");
 
@@ -79,6 +96,8 @@ void Parser::parse(Tokens& tokens, Diagnostics& diagnostics)
     this->_tokens = nullptr;
     this->_token = nullptr;
     this->_index = 0;
+
+    return asts;
 }
 
 bool Parser::_eof()
@@ -143,58 +162,87 @@ std::optional<Diagnostic> Parser::_diagnosticError(std::string message)
     return Diagnostic{DiagnosticCategory::error, DiagnosticModule::Parser, charStream, std::move(location), std::move(message)};
 }
 
-void Parser::_parseFunction()
+std::unique_ptr<AST> Parser::_parseFunction()
 {
+    auto astFunction{std::make_unique<ASTFunction>()};
+
     this->_match(TokenType::KW_F, "Expected 'f' keyword.");
+    astFunction->name = this->_token;
     this->_match(TokenType::ID, "Expected function name.");
     this->_match(TokenType::PAREN_OPEN, "Expected '(' after function name.");
 
     // Parameter 1
     if (this->_is(_dataTypes))
     {
+        ASTVariable astVariable;
+        astVariable.type = this->_token;
         this->_match(_dataTypes);
+
+        astVariable.name = this->_token;
         this->_match(TokenType::ID, "Expected parameter name.");
+
+        astFunction->parameters.emplace_back(std::move(astVariable));
 
         // Parameter++
         while (this->_is(TokenType::COMMA))
         {
             this->_match(TokenType::COMMA);
+
+            ASTVariable astVariable;
+            astVariable.type = this->_token;
             this->_match(_dataTypes, "Expected parameter data type.");
+
+            astVariable.name = this->_token;
             this->_match(TokenType::ID, "Expected parameter name.");
+
+            astFunction->parameters.emplace_back(std::move(astVariable));
         }
     }
 
     this->_match(TokenType::PAREN_CLOSE, "Expected ')' after parameters.");
+
+    return astFunction;
 }
 
-void Parser::_parseExpression()
+std::unique_ptr<AST> Parser::_parsePrimaryExpression()
 {
-    if (this->_is(TokenType::LIT_NUM))
-        this->_match(TokenType::LIT_NUM);
-    else if (this->_is(TokenType::LIT_STR))
-        this->_match(TokenType::LIT_STR);
-    else if (this->_is(TokenType::ID))
+    if (this->_is({TokenType::LIT_NUM, TokenType::LIT_STR}))
     {
+        auto astLiteral{std::make_unique<ASTLiteral>()};
+
+        astLiteral->value = this->_token;
+        this->_match({TokenType::LIT_NUM, TokenType::LIT_STR});
+
+        return astLiteral;
+    }
+
+    if (this->_is(TokenType::ID))
+    {
+        auto astCallFunction{std::make_unique<ASTCallFunction>()};
+
+        astCallFunction->name = this->_token;
         this->_match(TokenType::ID, "Expected function name.");
         this->_match(TokenType::PAREN_OPEN, "Expected '(' after function name.");
 
         // Argument 1
         if (this->_is({TokenType::LIT_NUM, TokenType::LIT_STR, TokenType::ID}))
         {
-            this->_parseExpression();
+            astCallFunction->arguments.emplace_back(this->_parsePrimaryExpression());
 
             // Argument++
             while (this->_is(TokenType::COMMA))
             {
                 this->_match(TokenType::COMMA);
-                this->_parseExpression();
+                astCallFunction->arguments.emplace_back(this->_parsePrimaryExpression());
             }
         }
 
         this->_match(TokenType::PAREN_CLOSE, "Expected ')' after arguments.");
+
+        return astCallFunction;
     }
-    else
-        throw this->_diagnosticError("Unexpected expression.");
+
+    throw this->_diagnosticError("Unexpected expression.");
 }
 
 } // namespace nusantara

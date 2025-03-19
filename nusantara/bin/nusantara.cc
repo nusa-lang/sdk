@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
+#include "nusantara/ast/asts.h"
 #include "nusantara/lexer/lexer.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/lexer/use_manager.h"
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
         diagnostics.clear();
 
         Parser parser;
-        parser.parse(vecTokens, diagnostics);
+        std::vector<ASTS> vecASTS{parser.parse(vecTokens, diagnostics)};
 
         if (!diagnostics.empty())
             outs() << diagnostics;

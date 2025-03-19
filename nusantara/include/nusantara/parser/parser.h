@@ -10,12 +10,15 @@
 #ifndef NUSANTARA_PARSER_PARSER_H
 #define NUSANTARA_PARSER_PARSER_H
 
+#include "nusantara/ast/ast.h"
+#include "nusantara/ast/asts.h"
 #include "nusantara/lexer/token/token.h"
 #include "nusantara/lexer/token/token_type.h"
 #include "nusantara/lexer/token/tokens.h"
 #include "nusantara/support/diagnostic/diagnostic.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -28,8 +31,8 @@ class Parser
 public:
     Parser();
 
-    void parse(std::vector<Tokens>& vecTokens, Diagnostics& diagnostics);
-    void parse(Tokens& tokens, Diagnostics& diagnostics);
+    std::vector<ASTS> parse(std::vector<Tokens>& vecTokens, Diagnostics& diagnostics);
+    ASTS parse(Tokens& tokens, Diagnostics& diagnostics);
 
 private:
     static std::unordered_set<TokenType> _dataTypes;
@@ -54,8 +57,8 @@ private:
 
     std::optional<Diagnostic> _diagnosticError(std::string message);
 
-    void _parseFunction();
-    void _parseExpression();
+    std::unique_ptr<AST> _parseFunction();
+    std::unique_ptr<AST> _parsePrimaryExpression();
 };
 
 } // namespace nusantara
