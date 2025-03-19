@@ -9,6 +9,8 @@
 
 #include "nusantara/support/diagnostic/diagnostic.h"
 #include "nusantara/support/out_stream.h"
+#include <algorithm>
+#include <cstddef>
 #include <string>
 
 namespace nusantara {
@@ -38,7 +40,7 @@ OutStream& operator<<(OutStream& os, const Diagnostic& diagnostic)
         for (const auto& loc : diagnostic.locations)
         {
             std::string prefix = std::to_string(loc.line + 1) + "| ";
-            os << prefix << diagnostic.charStream->lineView(loc.line) << '\n' << std::string(prefix.size() + loc.column, ' ') << std::string(loc.size, '^') << '\n';
+            os << prefix << diagnostic.charStream->lineView(loc.line) << '\n' << std::string(prefix.size() + loc.column, ' ') << std::string(std::max((size_t)1, loc.size), '^') << '\n';
         }
     }
 
