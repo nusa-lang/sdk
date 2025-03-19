@@ -7,21 +7,21 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_MODULE_H
-#define NUSANTARA_SUPPORT_DIAGNOSTIC_DIAGNOSTIC_MODULE_H
+#ifndef NUSANTARA_SEMANTIC_SYMBOL_TABLE_H
+#define NUSANTARA_SEMANTIC_SYMBOL_TABLE_H
 
-#include "nusantara/support/out_stream.h"
+#include "nusantara/lexer/token/token_type.h"
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace nusantara {
 
-enum class DiagnosticModule
+struct SymbolTable
 {
-    Lexer,
-    Parser,
-    Semantic
+    std::vector<std::pair<std::string, std::vector<TokenType>>> functions;
+    std::vector<std::pair<std::string, TokenType>> variables;
 };
-
-OutStream& operator<<(OutStream& os, const DiagnosticModule& diagnosticModule);
 
 } // namespace nusantara
 

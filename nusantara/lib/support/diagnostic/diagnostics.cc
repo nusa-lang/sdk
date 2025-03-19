@@ -23,7 +23,7 @@ OutStream& operator<<(OutStream& os, const Diagnostics& diagnostics)
     for (size_t i{0}; i < diagnostics._children.size(); ++i)
     {
         os << diagnostics._children[i];
-        if (i + 1 < diagnostics._children.size())
+        if (i + 1 < diagnostics._children.size() && !diagnostics._children[i].locations.empty())
             os << "\n\n────────────────────────────────\n";
         else
             os << '\n';
