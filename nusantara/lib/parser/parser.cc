@@ -22,6 +22,8 @@
 #include "nusantara/support/diagnostic/diagnostic_module.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
 #include <cstdint>
+#include <exception>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -222,21 +224,33 @@ std::unique_ptr<AST> Parser::_parsePrimaryExpression()
 
             if (lexeme.find(".") != std::string::npos)
             {
-                if (lexeme.size() <= 7)
-                    astLiteral->value = std::stof(lexeme);
+                double dValue{std::stod(lexeme)};
+
+                if (dValue >= std::numeric_limits<float>::lowest() && dValue <= std::numeric_limits<float>::max())
+                    astLiteral->value = static_cast<float>(dValue);
                 else
-                    astLiteral->value = std::stod(lexeme);
+                    astLiteral->value = dValue;
             }
-            else if (size <= 3)
-                astLiteral->value = (int8_t)std::stol(lexeme);
-            else if (size <= 5)
-                astLiteral->value = (int16_t)std::stol(lexeme);
-            else if (size <= 10)
-                astLiteral->value = (int32_t)std::stol(lexeme);
-            else if (size <= 19)
-                astLiteral->value = (int64_t)std::stoll(lexeme);
             else
-                throw this->_diagnosticError("Num is too large or small.");
+            {
+                try
+                {
+                    long long num{std::stoll(lexeme)};
+
+                    if (num >= std::numeric_limits<int8_t>::lowest() && num <= std::numeric_limits<int8_t>::max())
+                        astLiteral->value = static_cast<int8_t>(num);
+                    else if (num >= std::numeric_limits<int16_t>::lowest() && num <= std::numeric_limits<int16_t>::max())
+                        astLiteral->value = static_cast<int16_t>(num);
+                    else if (num >= std::numeric_limits<int32_t>::lowest() && num <= std::numeric_limits<int32_t>::max())
+                        astLiteral->value = static_cast<int32_t>(num);
+                    else if (num >= std::numeric_limits<int64_t>::lowest() && num <= std::numeric_limits<int64_t>::max())
+                        astLiteral->value = static_cast<int64_t>(num);
+                }
+                catch (const std::exception& error)
+                {
+                    throw this->_diagnosticError("Num is too large or small.");
+                }
+            }
         }
 
         this->_match({TokenType::LIT_NUM, TokenType::LIT_STR});
