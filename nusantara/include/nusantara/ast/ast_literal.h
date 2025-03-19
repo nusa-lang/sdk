@@ -12,12 +12,16 @@
 
 #include "nusantara/ast/ast.h"
 #include "nusantara/lexer/token/token.h"
+#include <cstdint>
+#include <string>
+#include <variant>
 
 namespace nusantara {
 
 struct ASTLiteral : public AST
 {
-    Token* value{nullptr};
+    Token* token{nullptr};
+    std::variant<std::monostate, int8_t, int16_t, int32_t, int64_t, float, double, std::string> value;
 };
 
 } // namespace nusantara

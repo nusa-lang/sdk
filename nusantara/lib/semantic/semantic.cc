@@ -126,7 +126,7 @@ void Semantic::_diagnosticError(ASTCallFunction& callFunction, std::string errMs
     for (auto& argument : callFunction.arguments)
     {
         if (auto* astLiteral{dynamic_cast<ASTLiteral*>(argument.get())})
-            this->_diagnosticError(astLiteral->value, errMsg);
+            this->_diagnosticError(astLiteral->token, errMsg);
         else if (auto* astCallFunction{dynamic_cast<ASTCallFunction*>(argument.get())})
             this->_diagnosticError(*astCallFunction, errMsg);
         else
@@ -167,15 +167,15 @@ void Semantic::_analyzeCallFunction(ASTCallFunction& callFunction)
     {
         if (auto* astLiteral{dynamic_cast<ASTLiteral*>(argument.get())})
         {
-            if (astLiteral->value == nullptr)
+            if (astLiteral->token == nullptr)
                 this->_diagnosticError(nullptr, "Missing literal value.");
 
-            if (astLiteral->value->type == TokenType::LIT_NUM)
+            if (astLiteral->token->type == TokenType::LIT_NUM)
                 arguments.emplace_back(TokenType::KW_DT_NUM);
-            else if (astLiteral->value->type == TokenType::LIT_STR)
+            else if (astLiteral->token->type == TokenType::LIT_STR)
                 arguments.emplace_back(TokenType::KW_DT_STR);
             else
-                this->_diagnosticError(astLiteral->value, "Literals cannot be analyzed for their data type.");
+                this->_diagnosticError(astLiteral->token, "Literals cannot be analyzed for their data type.");
         }
         else if (auto* astCallFunction{dynamic_cast<ASTCallFunction*>(argument.get())})
         {

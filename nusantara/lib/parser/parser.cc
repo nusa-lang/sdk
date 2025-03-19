@@ -21,6 +21,7 @@
 #include "nusantara/support/diagnostic/diagnostic_category.h"
 #include "nusantara/support/diagnostic/diagnostic_module.h"
 #include "nusantara/support/diagnostic/diagnostics.h"
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -210,7 +211,34 @@ std::unique_ptr<AST> Parser::_parsePrimaryExpression()
     {
         auto astLiteral{std::make_unique<ASTLiteral>()};
 
-        astLiteral->value = this->_token;
+        astLiteral->token = this->_token;
+        const auto& lexeme{this->_token->lexeme};
+
+        if (this->_is(TokenType::LIT_STR))
+            astLiteral->value = lexeme.substr(1, lexeme.size() - 2);
+        else if (this->_is(TokenType::LIT_NUM))
+        {
+            const auto& size{lexeme.size()};
+
+            if (lexeme.find(".") != std::string::npos)
+            {
+                if (lexeme.size() <= 7)
+                    astLiteral->value = std::stof(lexeme);
+                else
+                    astLiteral->value = std::stod(lexeme);
+            }
+            else if (size <= 3)
+                astLiteral->value = (int8_t)std::stol(lexeme);
+            else if (size <= 5)
+                astLiteral->value = (int16_t)std::stol(lexeme);
+            else if (size <= 10)
+                astLiteral->value = (int32_t)std::stol(lexeme);
+            else if (size <= 19)
+                astLiteral->value = (int64_t)std::stoll(lexeme);
+            else
+                throw this->_diagnosticError("Num is too large or small.");
+        }
+
         this->_match({TokenType::LIT_NUM, TokenType::LIT_STR});
 
         return astLiteral;
