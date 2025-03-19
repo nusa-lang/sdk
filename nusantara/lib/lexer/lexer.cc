@@ -223,14 +223,8 @@ bool Lexer::_makeToken(Token& token)
         {TokenType::COMMA, {",", false}},
 
         // Data types
-        {TokenType::KW_DT_I1, {"i1", true}},
-        {TokenType::KW_DT_I8, {"i8", true}},
-        {TokenType::KW_DT_I16, {"i16", true}},
-        {TokenType::KW_DT_I32, {"i32", true}},
-        {TokenType::KW_DT_I64, {"i64", true}},
-
-        {TokenType::KW_DT_F32, {"f32", true}},
-        {TokenType::KW_DT_F64, {"f64", true}},
+        {TokenType::KW_DT_NUM, {"num", true}},
+        {TokenType::KW_DT_STR, {"str", true}},
 
         // Keywords
         {TokenType::KW_F, {"f", true}},

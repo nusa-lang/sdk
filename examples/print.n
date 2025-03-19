@@ -1,1 +1,2 @@
-f print(x)
+f print(num x)
+f print(str x)

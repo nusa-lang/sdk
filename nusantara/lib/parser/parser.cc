@@ -25,13 +25,8 @@
 namespace nusantara {
 
 std::unordered_set<TokenType> Parser::_dataTypes{
-    TokenType::KW_DT_I1,
-    TokenType::KW_DT_I8,
-    TokenType::KW_DT_I16,
-    TokenType::KW_DT_I32,
-    TokenType::KW_DT_I64,
-    TokenType::KW_DT_F32,
-    TokenType::KW_DT_F64,
+    TokenType::KW_DT_NUM,
+    TokenType::KW_DT_STR,
 };
 
 Parser::Parser() = default;

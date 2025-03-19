@@ -3,4 +3,4 @@ use
 'examples/empty.n' 
 'examples/print.n'
 
-print(20)
+print(10)
