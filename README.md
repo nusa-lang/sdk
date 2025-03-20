@@ -1,3 +1,3 @@
-# Nusantara
+# Nusa
 
-The main repository of the Nusantara programming language.
+The main repository of the Nusa programming language.
