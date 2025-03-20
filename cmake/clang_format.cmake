@@ -10,8 +10,8 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/include/**/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
     )
-    # Iterate through each specified Nusantara subproject
-    foreach(PROJECT ${NUSANTARA_PROJECTS})
+    # Iterate through each specified Nusa subproject
+    foreach(PROJECT ${NUSA_PROJECTS})
         # Recursively find all source (.cc) and header (.h) files in the project directories
         file(GLOB_RECURSE PROJECT_HEADER_AND_SRC_FILES
             "${PROJECT}/bin/**/*.cc"     # Match .cc files in bin/ and its subdirectories

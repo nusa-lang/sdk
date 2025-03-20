@@ -1,9 +1,9 @@
 # Ensure that the project requires at least CMake version 3.28
 cmake_minimum_required(VERSION 3.28)
 
-# Define the project "Nusantara SDK" with a description and specify that it uses C and C++
-project("Nusantara SDK"
-    DESCRIPTION "The official development kit for developers using the Nusantara programming language."
+# Define the project "Nusa SDK" with a description and specify that it uses C and C++
+project("Nusa SDK"
+    DESCRIPTION "The official development kit for developers using the Nusa programming language."
     LANGUAGES C CXX
 )
 
@@ -53,6 +53,10 @@ if(CLANG_C_COMPILER AND CLANG_CXX_COMPILER)
 
     set(CMAKE_C_COMPILER "${CLANG_C_COMPILER}" CACHE STRING "C compiler" FORCE)
     set(CMAKE_CXX_COMPILER "${CLANG_CXX_COMPILER}" CACHE STRING "C++ compiler" FORCE)
+
+    add_compile_options(
+        -stdlib=libc++
+    )
 else()
     # If Clang is not found, warn the user and use the default compiler
     message(WARNING "Clang compiler not found! It is recommended to use Clang for better performance and compatibility.")
@@ -78,6 +82,12 @@ else()
     message(STATUS "C++20 support detected. Proceeding with the build.")
 endif()
 
+# Linking C ++ Standard Library and C ++ Abi Library
+add_link_options(
+    -lc++
+    -lc++abi
+)
+
 # Check if LLD linker is available
 execute_process(
     COMMAND ${CMAKE_C_COMPILER} -fuse-ld=lld --version
@@ -88,6 +98,7 @@ execute_process(
 if(LLD_AVAILABLE EQUAL 0)
     # If LLD is available, use it as the linker
     message(STATUS "Using LLD linker (-fuse-ld=lld).")
+
     add_link_options(
         -fuse-ld=lld
     )
@@ -102,7 +113,9 @@ option(BUILD_STATIC "Enable static linking for the project" ON)
 # If static build is enabled
 if(BUILD_STATIC)
     # Add the '-static' flag to linker options to enforce static linking
-    add_link_options(-static)
+    add_link_options(
+        -static
+    )
 
     # Print a status message indicating that static linking is enabled
     message(STATUS "Building with static linking.")
@@ -157,18 +170,30 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebI
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
-# Define a list of Nusantara subprojects to be built
-set(NUSANTARA_PROJECTS
-    nusantara # Main Nusantara project
+# Define a list of Nusa subprojects to be built
+set(NUSA_PROJECTS
+    nusa # Main Nusa project
 )
+
+# Define a LLVM and MLIR include path
+set(LLVM_INCLUDE_PATH $ENV{HOME}/llvm/llvm-20.1.1/include)
+set(MLIR_INCLUDE_PATH $ENV{HOME}/llvm/llvm-20.1.1/include)
+
+# Define a LLVM and MLIR static libs path
+set(LLVM_STATIC_LIBS_PATH $ENV{HOME}/llvm/llvm-20.1.1/lib)
+set(MLIR_STATIC_LIBS_PATH $ENV{HOME}/llvm/llvm-20.1.1/lib)
 
 # Include the CMake script that handles SDK versioning.
 # This script sets the version numbers, build date, build time,
 # and system information dynamically during the CMake configuration process.
 include(cmake/sdk_version.cmake)
 
+# Include the script for LLVM and MLIR static libs
+include(cmake/llvm_static_libs.cmake)
+include(cmake/mlir_static_libs.cmake)
+
 # Include the script for clang-format (code formatting)
 include(cmake/clang_format.cmake)
 
-# Include the script to handle Nusantara subprojects
-include(cmake/nusantara_projects.cmake)
+# Include the script to handle Nusa subprojects
+include(cmake/nusa_projects.cmake)
