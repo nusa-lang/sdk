@@ -175,22 +175,10 @@ set(NUSA_PROJECTS
     nusa # Main Nusa project
 )
 
-# Define a LLVM and MLIR include path
-set(LLVM_INCLUDE_PATH $ENV{HOME}/llvm/llvm-20.1.1/include)
-set(MLIR_INCLUDE_PATH $ENV{HOME}/llvm/llvm-20.1.1/include)
-
-# Define a LLVM and MLIR static libs path
-set(LLVM_STATIC_LIBS_PATH $ENV{HOME}/llvm/llvm-20.1.1/lib)
-set(MLIR_STATIC_LIBS_PATH $ENV{HOME}/llvm/llvm-20.1.1/lib)
-
 # Include the CMake script that handles SDK versioning.
 # This script sets the version numbers, build date, build time,
 # and system information dynamically during the CMake configuration process.
 include(cmake/sdk_version.cmake)
-
-# Include the script for LLVM and MLIR static libs
-include(cmake/llvm_static_libs.cmake)
-include(cmake/mlir_static_libs.cmake)
 
 # Include the script for clang-format (code formatting)
 include(cmake/clang_format.cmake)
